@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'CLManager' target in the 'CLManager' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
