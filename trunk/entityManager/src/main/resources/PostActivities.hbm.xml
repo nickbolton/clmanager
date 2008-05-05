@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.PostActivities" table="POST_ACTIVITIES">
+  <id type="long" column="POST_ACTIVITIES_ID" name="id">
+   <generator class="native"/>
+  </id>
+  <property column="USERNAME" generated="never" lazy="false" name="username" type="string"/>
+  <property column="RESPONDED" generated="never" lazy="false" name="responded" type="boolean"/>
+  <property column="VIEWED" generated="never" lazy="false" name="viewed" type="boolean"/>
+  <property column="FAVORITE" generated="never" lazy="false" name="favorite" type="boolean"/>
+  <many-to-one name="post" column="POST_ID" class="net.deuce.clmanager.domain.Post" not-null="true"/>
+ </class>
+ <query name="PostActivities.findByUsername">
+  <![CDATA[select p from net.deuce.clmanager.domain.PostActivities p where p.username  = ?]]>
+ </query>
+ <query name="PostActivities.findUniqueByUsernameAndPost">
+  <![CDATA[select p from net.deuce.clmanager.domain.PostActivities p where p.username  = ? and p.post = ?]]>
+ </query>
+</hibernate-mapping>

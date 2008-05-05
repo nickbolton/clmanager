@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.MessagePhotoAssociation" table="MESSAGE_PHOTO_ASSOCIATION">
+  <id type="long" column="MESSAGE_PHOTO_ASSOCIATION_ID" name="id">
+   <generator class="native"/>
+  </id>
+
+  <many-to-one name="messageTemplate" column="MESSAGE_TEMPLATE_ID" class="net.deuce.clmanager.domain.MessageTemplate"/>
+  <many-to-one name="messagePhoto" column="MESSAGE_PHOTO_ID" class="net.deuce.clmanager.domain.MessagePhoto"/>
+ </class>
+</hibernate-mapping>
