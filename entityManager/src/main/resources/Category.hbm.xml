@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.Category" table="CATEGORY">
+  <id type="long" column="CATEGORY_ID" name="id">
+   <generator class="native"/>
+  </id>
+  <property column="NAME" unique="true" generated="never" lazy="false" name="name" type="string"/>
+  <property column="EXTERNAL_NAME" generated="never" lazy="false" name="externalName" type="string"/>
+ </class>
+ <query name="Category.findAll">
+  <![CDATA[select c from net.deuce.clmanager.domain.Category c order by c.name]]>
+ </query>
+ <query name="Category.findUniqueByName">
+  <![CDATA[select c from net.deuce.clmanager.domain.Category c where c.name = ? ]]>
+ </query>
+ <query name="Category.findBySubscribed">
+  <![CDATA[select distinct c from net.deuce.clmanager.domain.Category c, net.deuce.clmanager.domain.CategorySubscription cs where c = cs.category and cs.subscribed = ?]]>
+ </query>
+</hibernate-mapping>

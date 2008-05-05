@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName"><value>org.postgresql.Driver</value></property>
+        <property name="url"><value>jdbc:postgresql://localhost:5432/clmanager</value></property>
+        <property name="username"><value>deuce</value></property>
+        <property name="password"><value>deuce</value></property>
+    </bean>
+
+    <bean id="namingStrategy"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+        <property name="staticField">
+            <value>org.hibernate.cfg.ImprovedNamingStrategy.INSTANCE</value>
+        </property>
+    </bean>
+
+    <bean id="extendedFinderNamingStrategy"
+        class="net.deuce.gendao.finder.impl.ExtendedFinderNamingStrategy" />
+
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+        <property name="namingStrategy">
+            <ref bean="namingStrategy"/>
+        </property>
+        <property name="mappingResources">
+            <list>
+                <value>City.hbm.xml</value>
+                <value>Category.hbm.xml</value>
+                <value>Post.hbm.xml</value>
+                <value>Image.hbm.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">validate</prop>
+            </props>
+        </property>
+        <property name="dataSource">
+            <ref bean="dataSource"/>
+        </property>
+    </bean>
+
+    <!--  Dao Layer generic config-->
+    <bean id="finderIntroductionAdvisor" class="net.deuce.gendao.finder.impl.FinderIntroductionAdvisor"/>
+    <bean id="abstractDaoTarget"
+          class="net.deuce.gendao.impl.GenericDaoHibernateImpl" abstract="true">
+        <property name="sessionFactory">
+            <ref bean="sessionFactory"/>
+        </property>
+        <property name="namingStrategy">
+            <ref bean="extendedFinderNamingStrategy" />
+        </property>
+    </bean>
+    <bean id="abstractDao"
+          class="org.springframework.aop.framework.ProxyFactoryBean" abstract="true">
+        <property name="interceptorNames">
+            <list>
+                <value>finderIntroductionAdvisor</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--  Dao Layer instances -->
+    <bean id="CityDao" parent="abstractDao">
+        <property name="proxyInterfaces">
+            <value>net.deuce.clmanager.domain.dao.CityDao</value>
+        </property>
+        <property name="target">
+            <bean parent="abstractDaoTarget">
+                <constructor-arg>
+                    <value>net.deuce.clmanager.domain.City</value>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+    <bean id="CategoryDao" parent="abstractDao">
+        <property name="proxyInterfaces">
+            <value>net.deuce.clmanager.domain.dao.CategoryDao</value>
+        </property>
+        <property name="target">
+            <bean parent="abstractDaoTarget">
+                <constructor-arg>
+                    <value>net.deuce.clmanager.domain.Category</value>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+    <bean id="PostDao" parent="abstractDao">
+        <property name="proxyInterfaces">
+            <value>net.deuce.clmanager.domain.dao.PostDao</value>
+        </property>
+        <property name="target">
+            <bean parent="abstractDaoTarget">
+                <constructor-arg>
+                    <value>net.deuce.clmanager.domain.Post</value>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+    <bean id="ImageDao" parent="abstractDao">
+        <property name="proxyInterfaces">
+            <value>net.deuce.clmanager.domain.dao.ImageDao</value>
+        </property>
+        <property name="target">
+            <bean parent="abstractDaoTarget">
+                <constructor-arg>
+                    <value>net.deuce.clmanager.domain.Image</value>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+</beans>

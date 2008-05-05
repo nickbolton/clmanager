@@ -1,0 +1,12 @@
+<project name="clserver" default="deployPreservingImages">
+    <target name="deployPreservingImages">
+        <move file="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver/images" todir="/Users/deuce/dev/src/personal/clmanager"/>
+        <delete dir="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver"/>
+        <unwar src="${basedir}/target/clserver.war" dest="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver"/>
+        <move file="/Users/deuce/dev/src/personal/clmanager/images" todir="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver"/>
+    </target>
+    <target name="deploy">
+        <delete dir="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver"/>
+        <unwar src="${basedir}/target/clserver.war" dest="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver"/>
+    </target>
+</project>

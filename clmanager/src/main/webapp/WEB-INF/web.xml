@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         version="2.4"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-app_2_4.xsd">
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/context/applicationContext.xml</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <servlet>
+        <servlet-name>view-servlet</servlet-name>
+        <servlet-class>org.springframework.web.servlet.ViewRendererServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>cityservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.CityServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>categoryservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.CategoryServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>postservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.PostServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>imageservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.ImageServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>images</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.ImageServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>messagetemplateservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.MessageTemplateServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>messagephotoservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.MessagePhotoServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>userservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.UserServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>mailservice</servlet-name>
+        <servlet-class>net.deuce.clmanager.gwt.main.server.MailServiceImpl</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <init-param>
+            <param-name>smtpServer</param-name>
+            <param-value>smtp.gmail.com</param-value>
+        </init-param>
+        <init-param>
+            <param-name>smtpAuth</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>smtpPort</param-name>
+            <param-value>465</param-value>
+        </init-param>
+        <init-param>
+            <param-name>fromAddress</param-name>
+            <param-value>larvell.jones2@gmail.com</param-value>
+        </init-param>
+        <init-param>
+            <param-name>bccAddress</param-name>
+            <param-value>bolton.nick@gmail.com</param-value>
+        </init-param>
+        <init-param>
+            <param-name>smtpUser</param-name>
+            <param-value>larvell.jones2@gmail.com</param-value>
+        </init-param>
+        <init-param>
+            <param-name>smtpPassword</param-name>
+            <param-value>gqopklm1</param-value>
+        </init-param>
+        <init-param>
+            <param-name>imageBasePath</param-name>
+            <param-value>/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>view-servlet</servlet-name>
+        <url-pattern>/WEB-INF/servlet/view</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>cityservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/CityService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>categoryservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/CategoryService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>postservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/PostService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>imageservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/ImageService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>messagetemplateservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MessageTemplateService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>messagephotoservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MessagePhotoService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>userservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/UserService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>mailservice</servlet-name>
+        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MailService</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>images</servlet-name>
+        <url-pattern>/images/*</url-pattern>
+    </servlet-mapping>
+</web-app>

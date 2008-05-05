@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.Image" table="IMAGE">
+  <id type="long" column="IMAGE_ID" name="id">
+   <generator class="native"/>
+  </id>
+  <property column="URL" generated="never" lazy="false" name="url" type="string"/>
+  <property column="PATH" generated="never" lazy="false" name="path" type="string"/>
+  <many-to-one name="post" column="POST_ID" class="net.deuce.clmanager.domain.Post"/>
+ </class>
+ <query name="Image.findByPost">
+   <![CDATA[select i from net.deuce.clmanager.domain.Image i where i.post  = ? ]]>
+ </query>
+</hibernate-mapping>
