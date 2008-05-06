@@ -82,7 +82,7 @@ public class AppView extends BaseView {
       south.setStyleAttribute("backgroundColor", "white");
 
       main.add(center, new BorderLayoutData(Style.CENTER));
-      main.add(south, new BorderLayoutData(Style.SOUTH, .33f, 50, 2000));
+      main.add(south, new BorderLayoutData(Style.SOUTH, .10f, 50, 2000));
 
       mainContainer.add(main, new BorderLayoutData(Style.CENTER));
 
