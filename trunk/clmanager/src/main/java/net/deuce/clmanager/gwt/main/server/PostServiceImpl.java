@@ -4,14 +4,15 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import net.deuce.clmanager.domain.Post;
 import net.deuce.clmanager.domain.PostActivities;
 import net.deuce.clmanager.gwt.main.client.PostService;
+import net.deuce.clmanager.gwt.main.client.model.PostFilter;
 import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.deuce.clmanager.gwt.main.client.model.PostingGroup;
 
@@ -96,7 +97,7 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         return query;
     }
     
-    private Query buildNewPostQuery(Session session, List postingGroups) {
+    private Query buildNewPostQuery(Session session, List postingGroups, PostFilter postFilter) {
         StringBuffer sb = new StringBuffer();
         sb.append(selectByCityAndCategoryPrefix);
         int count=0;
@@ -108,7 +109,22 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
                 sb.append("(p.clId > ? and p.city.name = ? and p.category.name = ?)");
             }
         }
-        sb.append(") order by p.clId desc");
+        sb.append(")");
+        if (postFilter != null) {
+            if (postFilter.getMinAge() > 0) {
+                sb.append(" and p.age >= ?");
+            }
+            if (postFilter.getMaxAge() < 99) {
+                sb.append(" and p.age <= ?");
+            }
+            if (postFilter.getNoFlagged()) {
+                sb.append(" and p.flagged = ?");
+            }
+            if (postFilter.getPhotosOnly()) {
+                sb.append(" and p.pic = ?");
+            }
+        }
+        sb.append(" order by p.clId desc");
         
         int index=0;
         Query query = session.createQuery(sb.toString());
@@ -118,6 +134,20 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
                 query.setLong(index++, pg.getLastFetched().longValue());
                 query.setString(index++, pg.getCity());
                 query.setString(index++, pg.getCategory());
+            }
+        }
+        if (postFilter != null) {
+            if (postFilter.getMinAge() > 0) {
+                query.setInteger(index++, postFilter.getMinAge());
+            }
+            if (postFilter.getMaxAge() < 99) {
+                query.setInteger(index++, postFilter.getMaxAge());
+            }
+            if (postFilter.getNoFlagged()) {
+                query.setBoolean(index++, true);
+            }
+            if (postFilter.getPhotosOnly()) {
+                query.setBoolean(index++, true);
             }
         }
         query.setMaxResults(200);
@@ -152,7 +182,18 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         return query;
     }
     
-    private List<PostModel> filterPosts(List<Post> posts, List<PostActivities> activities) {
+    private boolean postContainsSearchTerm(PostModel p, String s) {
+        boolean result = false;
+        Iterator itr = p.getPropertyNames();
+        while (!result && itr.hasNext()) {
+            String value = p.getAsString((String) itr.next())
+                .toLowerCase();
+            result = value.indexOf(s) >= 0;
+        }
+        return result;
+    }
+    
+    private List<PostModel> filterPosts(List<Post> posts, List<PostActivities> activities, PostFilter postFilter) {
         Map<Post, PostActivities> activityMap = new HashMap<Post, PostActivities>();
         for (PostActivities pa : activities) {
             activityMap.put(pa.getPost(), pa);
@@ -161,7 +202,10 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         for (Post p : posts) {
             PostActivities pa = activityMap.get(p);
             if (!p.isFlagged() || (pa != null && pa.isViewed())) {
-                result.add(buildPostModel(p, pa));
+                PostModel model = buildPostModel(p, pa);
+                if (postFilter == null || (postFilter.getSearchTerm().trim().length() > 0 && postContainsSearchTerm(model, postFilter.getSearchTerm().trim()))) {
+                    result.add(model);
+                }
             }
         }
         return result;
@@ -176,7 +220,7 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
             List<Post> l = query.list();
             if (l.size() > 0) {
                 List<PostActivities> activities = getPostActivitiesDao().findByUsername(username);
-                List result = filterPosts(l, activities);
+                List result = filterPosts(l, activities, null);
                 System.out.println("ZZZ returning " + result.size() + " posts for postingGroups: " + postingGroups);
                 return result;
             }
@@ -191,21 +235,26 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         }
     }
     
-    public Integer getNewPostCount(String username, List postingGroups) throws Exception {
-        Integer result = getNewPosts(username, postingGroups).size();
-        System.out.println("ZZZ new post count: " + result.intValue() + " for: " + postingGroups);
+    public Integer getNewPostCount(String username, List postingGroups, PostFilter postFilter) throws Exception {
+        Integer result = getNewPosts(username, postingGroups, postFilter).size();
+        if (postFilter != null) {
+            System.out.println("ZZZ new post count: " + result.intValue() + " for postingGroups: " + postingGroups +
+                " and " + postFilter);
+        } else {
+            System.out.println("ZZZ new post count: " + result.intValue() + " for postingGroups: " + postingGroups);
+        }
         return result;
     }
     
-    public List getNewPosts(String username, List postingGroups) throws Exception {
+    public List getNewPosts(String username, List postingGroups, PostFilter postFilter) throws Exception {
         Session session = openSession();
            
         try {
-            Query query = buildNewPostQuery(session, postingGroups);
+            Query query = buildNewPostQuery(session, postingGroups, postFilter);
             List<Post> l = query.list();
             if (l.size() > 0) {
                 List<PostActivities> activities = getPostActivitiesDao().findByUsername(username);
-                return filterPosts(l, activities);
+                return filterPosts(l, activities, postFilter);
             }
             return EMPTY_RESULT;
         } catch (Throwable e) {
@@ -215,10 +264,6 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         } finally {
             closeSession();
         }
-    }
-    
-    public List getNewPosts(String username, String cityName, String categoryName) throws Exception {
-        return getNewPosts(username, Arrays.asList(new String[]{cityName, categoryName}));
     }
     
     public PostModel getPost(String username, Long id) throws Exception {
