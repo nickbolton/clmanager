@@ -18,6 +18,7 @@ import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.CityModel;
+import net.deuce.clmanager.gwt.main.client.model.PostFilter;
 import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.deuce.clmanager.gwt.main.client.model.PostingGroup;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
@@ -64,17 +65,25 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
-import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
+import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 
 public class PostListView extends ReplyView {
 
+    private static int MIN_AGE = 0;
+    private static int MAX_AGE = 99;
+    
     private WidgetContainer wrapper;
     private Table table;
     private TableViewer viewer;
     private ToolBar toolBar;
     private ToolItem refreshItem;
+    private ViewerFilterTextBox filterTextBox;
+    private Spinner minAgeSpinner;
+    private Spinner maxAgeSpinner;
+    private MenuItem filterFlaggedItem;
+    private MenuItem filterPhotoItem;
     private Menu cityMenu;
     private Menu categoryMenu;
     private Map columnModelMap;
@@ -245,7 +254,8 @@ public class PostListView extends ReplyView {
                     
                 };
                 UserModel userModel = (UserModel)Registry.get("user");
-                serviceProxy.getNewPostCount(userModel.getUsername(), postingGroups, callback);
+                PostFilter postFilter = new PostFilter(minAge, maxAge, filterFlagged, photosOnly, filterTextBox.getText().toLowerCase());
+                serviceProxy.getNewPostCount(userModel.getUsername(), postingGroups, postFilter, callback);
             }
         }
     }
@@ -278,11 +288,11 @@ public class PostListView extends ReplyView {
         wrapper = new WidgetContainer();
         wrapper.setLayout(new RowLayout());
         
-        final ViewerFilterTextBox filterTextBox = new ViewerFilterTextBox();
+        filterTextBox = new ViewerFilterTextBox();
         final ViewerFilter filter = new ViewerFilter() {
                 public boolean select(Viewer viewer, Object parent, Object element) {
                 PostModel m = (PostModel) element;
-                if (minAge > 0 || maxAge < 99) {
+                if (minAge > MIN_AGE || maxAge < MAX_AGE) {
                     if (m.getAge() == null || m.getAge().length() == 0) {
                         Debug.println("ZZZ post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
                         return false;
@@ -355,6 +365,49 @@ public class PostListView extends ReplyView {
         
         ToolBar topToolbar = new ToolBar();
         wrapper.add(topToolbar, new RowData(RowData.FILL_HORIZONTAL));
+        
+        ToolItem clearFilters = new ToolItem(Style.PUSH);
+        clearFilters.setText("Clear Filters");
+        clearFilters.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                UserModel user = (UserModel)Registry.get("user");
+                
+                final Map preferences = new HashMap();
+                preferences.put("minAge", ""+MIN_AGE);
+                preferences.put("maxAge", ""+MAX_AGE);
+                preferences.put("noFlagged", "false");
+                preferences.put("photosOnly", "false");
+                preferences.put("searchTerm", "");
+                
+                savePreferences(preferences, new AsyncCallback() {
+                    public void onFailure(Throwable caught) {
+                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                    }
+
+                    public void onSuccess(Object result) {
+                        minAge = MIN_AGE;
+                        maxAge = MAX_AGE;
+                        filterFlagged = false;
+                        photosOnly = false;
+                        UserModel user = (UserModel)Registry.get("user");
+                        user.addAll(preferences);
+                        filterTextBox.setText("");
+                        minAgeSpinner.setValue(MIN_AGE);
+                        maxAgeSpinner.setValue(MAX_AGE);
+                        filterPhotoItem.setSelected(false);
+                        filterFlaggedItem.setSelected(false);
+                        Debug.println("ZZZ hello1");
+                        clearCityFilters(false);
+                        Debug.println("ZZZ hello2");
+                        clearCategoryFilters(true); // updates the view
+                        Debug.println("ZZZ hello3");
+                    }
+                });
+                
+            }
+        });
+        topToolbar.add(clearFilters);
+        
         ToolItemAdapter labelAdapter = new ToolItemAdapter(new Label("Message Template"));
         topToolbar.add(labelAdapter);
         ToolItemAdapter messageTemplateAdapter = new ToolItemAdapter(getMessageTemplates());
@@ -364,14 +417,14 @@ public class PostListView extends ReplyView {
         if (user.getPreference("minAge") != null) {
             minAge = Integer.valueOf(user.getPreference("minAge")).intValue();
         } else {
-            minAge = 0;
+            minAge = MIN_AGE;
         }
         if (user.getPreference("maxAge") != null) {
             maxAge = Integer.valueOf(user.getPreference("maxAge")).intValue();
         } else {
-            maxAge = 99;
+            maxAge = MAX_AGE;
         }
-        Spinner minAgeSpinner = new Spinner("Min Age", 0, 99, minAge, new Listener() {
+        minAgeSpinner = new Spinner("Min Age", MIN_AGE, MAX_AGE, minAge, new Listener() {
             public void handleEvent(BaseEvent be) {
                 if (be.value != null) {
                     Integer n = (Integer)be.value;
@@ -384,7 +437,7 @@ public class PostListView extends ReplyView {
         });
         topToolbar.add(new ToolItemAdapter(minAgeSpinner));
         
-        Spinner maxAgeSpinner = new Spinner("Max Age", 0, 99, maxAge, new Listener() {
+        maxAgeSpinner = new Spinner("Max Age", MIN_AGE, MAX_AGE, maxAge, new Listener() {
             public void handleEvent(BaseEvent be) {
                 if (be.value != null) {
                     Integer n = (Integer)be.value;
@@ -671,9 +724,10 @@ public class PostListView extends ReplyView {
         
         toolBar.add(categoryMenuItem);
         
+        filterTextBox.setText(user.getPreference("searchTerm"));
         filterTextBox.bind(viewer);
-        filterTextBox.addKeyboardListener(new KeyboardListenerAdapter() {
-            public void onKeyDown(Widget sender, char keyCode, int modifiers) {
+        filterTextBox.addChangeListener(new ChangeListener() {
+            public void onChange(Widget sender) {
                 if (filterTextBox.getText() != null && filterTextBox.getText().matches("^[0-9]+$")) {
                     long clPostId = Long.valueOf(filterTextBox.getText()).longValue();
                     boolean found = false;
@@ -684,7 +738,9 @@ public class PostListView extends ReplyView {
                         loadPost(clPostId);
                     }
                 }
+                savePreference("searchTerm", filterTextBox.getText(), null);
             }
+
         });
         ToolItemAdapter filterTextBoxAdapter = new ToolItemAdapter(filterTextBox);
         toolBar.add(filterTextBoxAdapter);
@@ -699,32 +755,37 @@ public class PostListView extends ReplyView {
                 filterTextBox.setText("");
                 viewer.removeFilter(filter);
                 viewer.addFilter(filter);  
+                savePreference("searchTerm", "", null);
             }
         });
         toolBar.add(clearSearchButton);
 
         Menu filterMenu = new Menu();  
-        final MenuItem filterFlaggedItem = new MenuItem(Style.CHECK);  
+        filterFlaggedItem = new MenuItem(Style.CHECK);  
         filterFlaggedItem.setText("No Flagged");  
-        filterFlaggedItem.setSelected(true);
-        filterFlagged = true;
+        filterFlagged = Boolean.valueOf(user.getPreference("noFlagged")).booleanValue();
+        filterFlaggedItem.setSelected(filterFlagged);
         filterFlaggedItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 filterFlagged = filterFlaggedItem.isSelected();
                 viewer.removeFilter(filter);
-                viewer.addFilter(filter);  
+                viewer.addFilter(filter);
+                savePreference("noFlagged", ""+filterFlagged, null);
             }
 
         });
         filterMenu.add(filterFlaggedItem);  
            
-        final MenuItem filterPhotoItem = new MenuItem(Style.CHECK);  
+        filterPhotoItem = new MenuItem(Style.CHECK);  
         filterPhotoItem.setText("Photos Only");  
+        photosOnly = Boolean.valueOf(user.getPreference("photosOnly")).booleanValue();
+        filterPhotoItem.setSelected(photosOnly);
         filterPhotoItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 photosOnly = filterPhotoItem.isSelected();
                 viewer.removeFilter(filter);
                 viewer.addFilter(filter);  
+                savePreference("photosOnly", ""+photosOnly, null);
             }
 
         });
@@ -893,6 +954,31 @@ public class PostListView extends ReplyView {
         serviceProxy.addCityFilter(user.getUsername(), city.getName(), callback);
     }
     
+    private void clearCityFilters(final boolean update) {
+        UserServiceAsync serviceProxy = (UserServiceAsync)GWT.create(UserService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
+        AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable caught) {
+                Window.alert(DebugUtils.getStacktraceAsString(caught));
+            }
+
+            public void onSuccess(Object result) {
+                UserModel user = (UserModel)Registry.get("user");
+                user.getCitySubscriptionFilter().clear();
+                for (int i=0; i<cityMenu.getItemCount(); i++) {
+                    MenuItem item = cityMenu.getItem(i);
+                    item.setSelected(true);
+                }
+                if (update) {
+                    viewer.setInput(posts);
+                }
+            }
+        };
+        UserModel user = (UserModel)Registry.get("user");
+        serviceProxy.clearCityFilters(user.getUsername(), callback);
+    }
+    
     private void removeCityFilter(final CityModel city) {
         UserServiceAsync serviceProxy = (UserServiceAsync)GWT.create(UserService.class);
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
@@ -929,6 +1015,31 @@ public class PostListView extends ReplyView {
         };
         UserModel user = (UserModel)Registry.get("user");
         serviceProxy.addCategoryFilter(user.getUsername(), category.getName(), callback);
+    }
+    
+    private void clearCategoryFilters(final boolean update) {
+        UserServiceAsync serviceProxy = (UserServiceAsync)GWT.create(UserService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
+        AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable caught) {
+                Window.alert(DebugUtils.getStacktraceAsString(caught));
+            }
+
+            public void onSuccess(Object result) {
+                UserModel user = (UserModel)Registry.get("user");
+                user.getCategorySubscriptionFilter().clear();
+                for (int i=0; i<categoryMenu.getItemCount(); i++) {
+                    MenuItem item = categoryMenu.getItem(i);
+                    item.setSelected(true);
+                }
+                if (update) {
+                    viewer.setInput(posts);
+                }
+            }
+        };
+        UserModel user = (UserModel)Registry.get("user");
+        serviceProxy.clearCategoryFilters(user.getUsername(), callback);
     }
     
     private void removeCategoryFilter(final CategoryModel category) {

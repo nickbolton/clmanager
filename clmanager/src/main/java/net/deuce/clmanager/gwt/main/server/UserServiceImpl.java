@@ -154,6 +154,33 @@ public class UserServiceImpl extends BaseServiceImpl implements UserService {
             closeSession();
         }
     }
+    
+    public void clearCategoryFilters(String username)
+    throws Exception {
+
+        openSession();
+        try {
+            UserPreferences userPreferences = getUserPreferences(username);
+            if (userPreferences == null) {
+                getLog().error("No user named: " + username);
+                return;
+            }
+            Iterator itr = userPreferences.getCategorySubscriptions().iterator();
+            while (itr.hasNext()) {
+                CategorySubscription cs = (CategorySubscription)itr.next();
+                if (cs != null && cs.isFiltered()) {
+                    cs.setFiltered(false);
+                    getCategorySubscriptionDao().update(cs);
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            getLog().error(e);
+            throw new Exception(e);
+        } finally {
+            closeSession();
+        }
+    }
 
     public void removeCategoryFilter(String username, String categoryName)
         throws Exception {
@@ -213,6 +240,33 @@ public class UserServiceImpl extends BaseServiceImpl implements UserService {
             closeSession();
         }
 
+    }
+    
+    public void clearCityFilters(String username)
+    throws Exception {
+
+        openSession();
+        try {
+            UserPreferences userPreferences = getUserPreferences(username);
+            if (userPreferences == null) {
+                getLog().error("No user named: " + username);
+                return;
+            }
+            Iterator itr = userPreferences.getCitySubscriptions().iterator();
+            while (itr.hasNext()) {
+                CitySubscription cs = (CitySubscription)itr.next();
+                if (cs != null && cs.isFiltered()) {
+                    cs.setFiltered(false);
+                    getCitySubscriptionDao().update(cs);
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            getLog().error(e);
+            throw new Exception(e);
+        } finally {
+            closeSession();
+        }
     }
     
     private boolean setPreference(UserPreferences userPreferences, String name, String value) {

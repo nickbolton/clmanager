@@ -75,6 +75,10 @@ public class Spinner extends Composite {
         }
     }
     
+    public void setValue(int value) {
+        numberField.setText(""+value);
+    }
+    
     public int getValue() {
         return numberField.getValue();
     }

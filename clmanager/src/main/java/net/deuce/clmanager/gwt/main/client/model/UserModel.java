@@ -48,8 +48,10 @@ public class UserModel extends Model {
         m.put(name, value);
     }
     public String getPreference(String name) {
-        Map m = (Map)get("preferences");
-        return (String)m.get(name);
+        return (String)getPreferences().get(name);
+    }
+    public Map getPreferences() {
+        return (Map)get("preferences");
     }
     public Integer getIntegerPreference(String name) {
         String pref = getPreference(name);
