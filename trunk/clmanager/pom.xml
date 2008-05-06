@@ -58,7 +58,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>gxt</groupId>
+      <groupId>mygwt</groupId>
       <artifactId>mygwt</artifactId>
       <version>${mygwt.version}</version>
       <scope>compile</scope>
@@ -69,12 +69,12 @@
       <version>${gwttk.version}</version>
       <scope>compile</scope>
     </dependency>
-    <!--dependency>
+    <dependency>
       <groupId>gwtext</groupId>
       <artifactId>gwtext</artifactId>
       <version>${gwtext.version}</version>
       <scope>compile</scope>
-    </dependency-->
+    </dependency>
     <dependency>
       <groupId>xstream</groupId>
       <artifactId>xstream</artifactId>
