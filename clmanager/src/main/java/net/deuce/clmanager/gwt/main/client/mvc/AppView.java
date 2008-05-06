@@ -18,6 +18,8 @@ import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.BorderLayout;
 import net.mygwt.ui.client.widget.layout.BorderLayoutData;
 import net.mygwt.ui.client.widget.layout.FillLayout;
+import asquare.gwt.debug.client.Debug;
+import asquare.gwt.debug.client.DebugConsole;
 
 public class AppView extends BaseView {
 
@@ -40,6 +42,14 @@ public class AppView extends BaseView {
       viewport = new Viewport();
       viewport.setStyleName("my-border-layout");
       viewport.setLayout(new BorderLayout());
+      
+      com.gwtext.client.widgets.Window debugWindow = new com.gwtext.client.widgets.Window("Debug Console", 550, 400, false, true);
+      debugWindow.add(DebugConsole.getInstance());
+      DebugConsole.getInstance().enable();
+      debugWindow.setMaximizable(true);
+      debugWindow.setMinimizable(true);
+      debugWindow.show();
+      Debug.println("Debugging...");
 
       BorderLayoutData westData = new BorderLayoutData(Style.WEST, 200, 150, 350);
       

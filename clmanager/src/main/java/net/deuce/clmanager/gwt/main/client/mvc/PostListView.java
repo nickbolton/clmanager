@@ -396,11 +396,9 @@ public class PostListView extends ReplyView {
                         maxAgeSpinner.setValue(MAX_AGE);
                         filterPhotoItem.setSelected(false);
                         filterFlaggedItem.setSelected(false);
-                        Debug.println("ZZZ hello1");
                         clearCityFilters(false);
-                        Debug.println("ZZZ hello2");
                         clearCategoryFilters(true); // updates the view
-                        Debug.println("ZZZ hello3");
+                        checkForUpdates();
                     }
                 });
                 
@@ -432,6 +430,7 @@ public class PostListView extends ReplyView {
                     viewer.removeFilter(filter);
                     viewer.addFilter(filter);  
                     setPreference("minAge", ""+minAge);
+                    checkForUpdates();
                 }
             }
         });
@@ -445,6 +444,7 @@ public class PostListView extends ReplyView {
                     viewer.removeFilter(filter);
                     viewer.addFilter(filter);  
                     setPreference("maxAge", ""+maxAge);
+                    checkForUpdates();
                 }
             }
         });
@@ -739,6 +739,7 @@ public class PostListView extends ReplyView {
                     }
                 }
                 savePreference("searchTerm", filterTextBox.getText(), null);
+                checkForUpdates();
             }
 
         });
@@ -756,6 +757,7 @@ public class PostListView extends ReplyView {
                 viewer.removeFilter(filter);
                 viewer.addFilter(filter);  
                 savePreference("searchTerm", "", null);
+                checkForUpdates();
             }
         });
         toolBar.add(clearSearchButton);
@@ -771,6 +773,7 @@ public class PostListView extends ReplyView {
                 viewer.removeFilter(filter);
                 viewer.addFilter(filter);
                 savePreference("noFlagged", ""+filterFlagged, null);
+                checkForUpdates();
             }
 
         });
@@ -786,6 +789,7 @@ public class PostListView extends ReplyView {
                 viewer.removeFilter(filter);
                 viewer.addFilter(filter);  
                 savePreference("photosOnly", ""+photosOnly, null);
+                checkForUpdates();
             }
 
         });
@@ -1102,6 +1106,7 @@ public class PostListView extends ReplyView {
                                 } else {
                                     removeCityFilter(city);
                                 }
+                                checkForUpdates();
                             }
     
                         });
@@ -1147,6 +1152,7 @@ public class PostListView extends ReplyView {
                                 } else {
                                     removeCategoryFilter(category);
                                 }
+                                checkForUpdates();
                             }
     
                         });
