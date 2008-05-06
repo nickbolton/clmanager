@@ -18,7 +18,6 @@ import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.BorderLayout;
 import net.mygwt.ui.client.widget.layout.BorderLayoutData;
 import net.mygwt.ui.client.widget.layout.FillLayout;
-import asquare.gwt.debug.client.Debug;
 import asquare.gwt.debug.client.DebugConsole;
 
 public class AppView extends BaseView {
@@ -27,6 +26,7 @@ public class AppView extends BaseView {
     private ContentPanel west;
     private ContentPanel east;
     private WidgetContainer main;
+    private WidgetContainer mainContainer;
     private ContentPanel center;
     private ContentPanel focus;
     private WidgetContainer south;
@@ -43,20 +43,16 @@ public class AppView extends BaseView {
       viewport.setStyleName("my-border-layout");
       viewport.setLayout(new BorderLayout());
       
-      com.gwtext.client.widgets.Window debugWindow = new com.gwtext.client.widgets.Window("Debug Console", 550, 400, false, true);
-      debugWindow.add(DebugConsole.getInstance());
-      DebugConsole.getInstance().enable();
-      debugWindow.setMaximizable(true);
-      debugWindow.setMinimizable(true);
-      debugWindow.show();
-      Debug.println("Debugging...");
-
+      mainContainer = new WidgetContainer();
+      mainContainer.setLayout(new BorderLayout());
+      viewport.add(mainContainer, new BorderLayoutData(Style.CENTER));
+      
       BorderLayoutData westData = new BorderLayoutData(Style.WEST, 200, 150, 350);
       
       east = new ContentPanel();
       east.setText("Photos");
       east.setLayout(new FillLayout());
-      viewport.add(east, new BorderLayoutData(Style.EAST, 300, 150, 250));
+      mainContainer.add(east, new BorderLayoutData(Style.EAST, 300, 150, 250));
 
       west = new ContentPanel(Style.HEADER);
       west.setText("CLManager");
@@ -65,7 +61,7 @@ public class AppView extends BaseView {
       west.setLayout(new FillLayout());
       west.add(expandBar);
 
-      viewport.add(west, westData);
+      mainContainer.add(west, westData);
 
       main = new WidgetContainer();
       BorderLayout layout = new BorderLayout();
@@ -88,36 +84,38 @@ public class AppView extends BaseView {
       main.add(center, new BorderLayoutData(Style.CENTER));
       main.add(south, new BorderLayoutData(Style.SOUTH, .33f, 50, 2000));
 
-      viewport.add(main, new BorderLayoutData(Style.CENTER));
+      mainContainer.add(main, new BorderLayoutData(Style.CENTER));
 
+      viewport.add(DebugConsole.getInstance(), new BorderLayoutData(Style.SOUTH, .33f, 50, 2000));
+      
       viewport.layout();
       viewport.hideLoadingPanel("loading");
 
-      Registry.register("viewport", viewport);
       Registry.register("west", west);
       Registry.register("center", center);
       Registry.register("south", south);
       Registry.register("east", east);
       Registry.register("focus", focus);
+      
     }
     
     public void focusCenter() {
         if (!centerFocused) {
-            viewport.remove(east);
-            viewport.remove(main);
-            viewport.add(focus, new BorderLayoutData(Style.CENTER));
-            viewport.layout(true);
+            mainContainer.remove(east);
+            mainContainer.remove(main);
+            mainContainer.add(focus, new BorderLayoutData(Style.CENTER));
+            mainContainer.layout(true);
             centerFocused = true;
         }
     }
     
     public void unfocusCenter() {
         if (centerFocused) {
-            viewport.remove(focus);
-            viewport.add(east, new BorderLayoutData(Style.EAST, 300, 150, 250));
-            viewport.add(main, new BorderLayoutData(Style.CENTER));
+            mainContainer.remove(focus);
+            mainContainer.add(east, new BorderLayoutData(Style.EAST, 300, 150, 250));
+            mainContainer.add(main, new BorderLayoutData(Style.CENTER));
             centerFocused = false;
-            viewport.layout(true);
+            mainContainer.layout(true);
         }
     }
 

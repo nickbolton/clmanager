@@ -35,22 +35,22 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.FocusWidget;
+import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.gwtext.client.data.SimpleStore;
-import com.gwtext.client.data.Store;
-import com.gwtext.client.widgets.form.ComboBox;
-import com.gwtext.client.widgets.form.FormPanel;
-import com.gwtext.client.widgets.form.TextArea;
-import com.gwtext.client.widgets.form.TextField;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class ViewMessageTemplateView extends BaseView {
 
     private WidgetContainer page;
     private WidgetContainer photos;
-    private TextField nameField;
+    private TextBox nameField;
     private TextArea messageField;
-    private ComboBox categories;
-    private Store categoryStore;
+    private ListBox categories;
     private MessageTemplateModel model;
     
     public ViewMessageTemplateView(Controller controller) {
@@ -74,10 +74,18 @@ public class ViewMessageTemplateView extends BaseView {
     
     private void reset() {
         clearPhotoSelections();
-        nameField.setValue(model.getName());
-        messageField.setValue(model.getMessage());
+        nameField.setText(model.getName());
+        messageField.setText(model.getMessage());
         if (model.getCategoryName() != null) {
-            categories.setValue(model.getCategoryName());
+            int itemIndex=-1;
+            for (int i=0; itemIndex < 0 && i<categories.getItemCount(); i++) {
+                if (categories.getItemText(itemIndex).equals(model.getCategoryName())) {
+                    itemIndex = i;
+                }
+            }
+            if (itemIndex >= 0) {
+                categories.setSelectedIndex(itemIndex);
+            }
         }
         List l = model.getChildren();
         for (int i=0; i<l.size(); i++) {
@@ -126,6 +134,16 @@ public class ViewMessageTemplateView extends BaseView {
         }
     }
 
+    private HorizontalPanel createLabeledField(String label, FocusWidget field, int labelWidth, int fieldWidth) {
+        HorizontalPanel hp = new HorizontalPanel();
+        Label l = new Label(label);
+        l.setWidth(""+labelWidth);
+        hp.add(l);
+        field.setWidth(""+fieldWidth);
+        hp.add(field);
+        return hp;
+    }
+
     protected void initialize() {
         page = new WidgetContainer();
         page.setLayout(new BorderLayout());
@@ -134,30 +152,27 @@ public class ViewMessageTemplateView extends BaseView {
             }
         });
         FormPanel form = new FormPanel();
-        page.add(form, new BorderLayoutData(Style.CENTER));
+        VerticalPanel vp = new VerticalPanel();
+        vp.add(form);
+        page.add(vp, new BorderLayoutData(Style.CENTER));
         
-        categories = new ComboBox("Default Category");
-        categories.setDisplayField("category");
-        categories.setMode(ComboBox.LOCAL);
+        categories = new ListBox(false);
+        categories.setVisibleItemCount(1);
         buildCategories();
-        form.add(categories);
+        vp.add(categories);
         
-        nameField = new TextField("Name", "name", 400);
-        nameField.setAllowBlank(false);
-        form.add(nameField);
+        nameField = new TextBox();
+        vp.add(createLabeledField("Name", nameField, 100, 400));
         
-        messageField = new TextArea("Message", "message");
-        messageField.setGrow(true);
-        messageField.setHeight(200);
-        messageField.setWidth(400);
-        form.add(messageField);
+        messageField = new TextArea();
+        vp.add(createLabeledField("Message", messageField, 100, 400));
 
         Button saveButton = new Button("Save");
         saveButton.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
-                model.setName(nameField.getValueAsString());
-                model.setMessage(messageField.getValueAsString());
-                model.setCategoryName(categories.getValue());
+                model.setName(nameField.getText());
+                model.setMessage(messageField.getText());
+                model.setCategoryName(categories.getItemText(categories.getSelectedIndex()));
                 model.removeAll();
                 for (int i=0; i<photos.getWidgetCount(); i++) {
                     SelectableImage si = (SelectableImage)photos.getWidget(i);
@@ -185,7 +200,7 @@ public class ViewMessageTemplateView extends BaseView {
 
         });
         HorizontalPanel buttons = new HorizontalPanel();
-        form.add(buttons);
+        vp.add(buttons);
         buttons.add(saveButton);
         
         Button resetButton = new Button("Reset");
@@ -213,11 +228,8 @@ public class ViewMessageTemplateView extends BaseView {
         Object[][] categoryData = new Object[l.size()][];
         for (int i=0; i<l.size(); i++) {
             CategoryModel category = (CategoryModel)l.get(i);
-            categoryData[i] = new Object[] {category.getName() };
+            categories.addItem(category.getName());
         }
-        categoryStore = new SimpleStore(new String[]{"category"}, categoryData);
-        categoryStore.load();
-        categories.setStore(categoryStore);
     }
     
     private void fetchAndBuildCategories() {
@@ -235,14 +247,10 @@ public class ViewMessageTemplateView extends BaseView {
             public void onSuccess (Object result) { 
                 LoadingPanel.get().hide();
                 List l = (List)result;
-                Object[][] categoryData = new Object[l.size()][];
                 for (int i=0; i<l.size(); i++) {
                     CategoryModel category = (CategoryModel)l.get(i);
-                    categoryData[i] = new Object[] {category.getName() };
+                    categories.addItem(category.getName());
                 }
-                categoryStore = new SimpleStore(new String[]{"category"}, categoryData);
-                categoryStore.load();
-                categories.setStore(categoryStore);
                 Registry.register("categories", l);
             }   
         });
