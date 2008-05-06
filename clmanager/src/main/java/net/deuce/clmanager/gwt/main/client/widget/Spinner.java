@@ -23,7 +23,7 @@ public class Spinner extends Composite {
         this.listener = listener;
         
         this.wrapper = new HorizontalPanel();
-        numberField = new NumberTextBox(min, max, value);
+        numberField = new NumberTextBox(min, max, value, 2);
         
         wrapper.add(new Label(label));
         wrapper.add(numberField);

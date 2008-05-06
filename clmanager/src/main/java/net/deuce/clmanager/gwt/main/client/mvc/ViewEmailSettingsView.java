@@ -7,6 +7,7 @@ import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.widget.NumberTextBox;
 import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
@@ -25,22 +26,25 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.FocusWidget;
+import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.gwtext.client.widgets.form.Checkbox;
-import com.gwtext.client.widgets.form.FormPanel;
-import com.gwtext.client.widgets.form.NumberField;
-import com.gwtext.client.widgets.form.TextField;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PasswordTextBox;
+import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class ViewEmailSettingsView extends BaseView {
 
     private WidgetContainer page;
-    private TextField smtpServer;
-    private Checkbox smtpAuth;
-    private NumberField smtpPort;
-    private TextField fromEmailAddress;
-    private TextField bccEmailAddress;
-    private TextField smtpUser;
-    private TextField smtpPassword;
+    private TextBox smtpServer;
+    private CheckBox smtpAuth;
+    private NumberTextBox smtpPort;
+    private TextBox fromEmailAddress;
+    private TextBox bccEmailAddress;
+    private TextBox smtpUser;
+    private PasswordTextBox smtpPassword;
     
     public ViewEmailSettingsView(Controller controller) {
         super(controller);
@@ -51,7 +55,7 @@ public class ViewEmailSettingsView extends BaseView {
 
         String value = user.getPreference("smtpServer");
         if (value != null) {
-            smtpServer.setValue(value);
+            smtpServer.setText(value);
         }
         value = user.getPreference("smtpAuth");
         if (value != null) {
@@ -59,23 +63,23 @@ public class ViewEmailSettingsView extends BaseView {
         }
         value = user.getPreference("smtpPort");
         if (value != null) {
-            smtpPort.setValue(value);
+            smtpPort.setText(value);
         }
         value = user.getPreference("fromEmailAddress");
         if (value != null) {
-            fromEmailAddress.setValue(value);
+            fromEmailAddress.setText(value);
         }
         value = user.getPreference("bccEmailAddress");
         if (value != null) {
-            bccEmailAddress.setValue(value);
+            bccEmailAddress.setText(value);
         }
         value = user.getPreference("smtpUser");
         if (value != null) {
-            smtpUser.setValue(value);
+            smtpUser.setText(value);
         }
         value = user.getPreference("smtpPassword");
         if (value != null) {
-            smtpPassword.setValue(value);
+            smtpPassword.setText(value);
         }
     }
     
@@ -94,6 +98,16 @@ public class ViewEmailSettingsView extends BaseView {
             focus.layout();
         }
     }
+    
+    private HorizontalPanel createLabeledField(String label, FocusWidget field, int labelWidth, int fieldWidth) {
+        HorizontalPanel hp = new HorizontalPanel();
+        Label l = new Label(label);
+        l.setWidth(""+labelWidth);
+        hp.add(l);
+        field.setWidth(""+fieldWidth);
+        hp.add(field);
+        return hp;
+    }
 
     protected void initialize() {
         page = new WidgetContainer();
@@ -103,23 +117,22 @@ public class ViewEmailSettingsView extends BaseView {
             }
         });
         FormPanel form = new FormPanel();
-        page.add(form, new BorderLayoutData(Style.CENTER));
+        VerticalPanel vp = new VerticalPanel();
         
-        smtpAuth = new Checkbox("SMTP AUTH", "smtpAuth");
-        form.add(smtpAuth);
-        smtpServer = new TextField("SMTP Server", "smtpServer", 400);
-        form.add(smtpServer);
-        smtpPort = new NumberField("SMTP Port", "smtpPort", 400);
-        form.add(smtpPort);
-        smtpUser = new TextField("SMTP Email Address", "smtpUser", 400);
-        form.add(smtpUser);
-        smtpPassword = new TextField("Password", "smtpPassword", 400);
-        smtpPassword.setPassword(true);
-        form.add(smtpPassword);
-        fromEmailAddress = new TextField("From Email Address", "fromEmailAddress", 400);
-        form.add(fromEmailAddress);
-        bccEmailAddress = new TextField("BCC Email Address", "bccEmailAddress", 400);
-        form.add(bccEmailAddress);
+        smtpAuth = new CheckBox("SMTP AUTH");
+        vp.add(smtpAuth);
+        smtpServer = new TextBox();
+        vp.add(createLabeledField("SMTP Server", smtpServer, 100, 400));
+        smtpPort = new NumberTextBox(0, 99999, 25, 5);
+        vp.add(createLabeledField("SMTP PORT", smtpPort, 100, 400));
+        smtpUser = new TextBox();
+        vp.add(createLabeledField("SMTP Email Address", smtpUser, 100, 400));
+        smtpPassword = new PasswordTextBox();
+        vp.add(createLabeledField("SMTP Password", smtpPassword, 100, 400));
+        fromEmailAddress = new TextBox();
+        vp.add(createLabeledField("From Email Address", fromEmailAddress, 100, 400));
+        bccEmailAddress = new TextBox();
+        vp.add(createLabeledField("BCC Email Address", bccEmailAddress, 100, 400));
         
 
         Button saveButton = new Button("Save");
@@ -127,13 +140,13 @@ public class ViewEmailSettingsView extends BaseView {
             public void widgetSelected(BaseEvent be) {
                 
                 final Map preferences = new HashMap();
-                preferences.put("smtpAuth", smtpAuth.getValueAsString());
-                preferences.put("smtpServer", smtpServer.getValueAsString());
-                preferences.put("smtpPort", smtpPort.getValueAsString());
-                preferences.put("smtpUser", smtpUser.getValueAsString());
-                preferences.put("smtpPassword", smtpPassword.getValueAsString());
-                preferences.put("fromEmailAddress", fromEmailAddress.getValueAsString());
-                preferences.put("bccEmailAddress", bccEmailAddress.getValueAsString());
+                preferences.put("smtpAuth", smtpAuth.getText());
+                preferences.put("smtpServer", smtpServer.getText());
+                preferences.put("smtpPort", smtpPort.getText());
+                preferences.put("smtpUser", smtpUser.getText());
+                preferences.put("smtpPassword", smtpPassword.getText());
+                preferences.put("fromEmailAddress", fromEmailAddress.getText());
+                preferences.put("bccEmailAddress", bccEmailAddress.getText());
                 
                 UserModel user = (UserModel)Registry.get("user");
                 UserServiceAsync serviceProxy = (UserServiceAsync)GWT.create(UserService.class);
@@ -157,7 +170,7 @@ public class ViewEmailSettingsView extends BaseView {
 
         });
         HorizontalPanel buttons = new HorizontalPanel();
-        form.add(buttons);
+        vp.add(buttons);
         buttons.add(saveButton);
         
         Button resetButton = new Button("Reset");
@@ -168,6 +181,8 @@ public class ViewEmailSettingsView extends BaseView {
         });
         buttons.add(resetButton);
         
+        form.setWidget(vp);
+        page.add(form, new BorderLayoutData(Style.CENTER));
     }
     
 }

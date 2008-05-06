@@ -3,7 +3,7 @@
 	<inherits name="net.mygwt.ui.MyGWT" />
 	<inherits name="asquare.gwt.debug.Debug" />
 	
-	<inherits name="com.gwtext.GwtExt" />
+	<!--inherits name="com.gwtext.GwtExt" /-->
 	
 	<entry-point class="net.deuce.clmanager.gwt.main.client.Main"/>
 	<servlet path="/CityService" class="net.deuce.clmanager.gwt.main.server.CityServiceImpl"/>
@@ -11,11 +11,11 @@
 	<servlet path="/PostService" class="net.deuce.clmanager.gwt.main.server.PostServiceImpl"/>
 	<servlet path="/MessageTemplateService" class="net.deuce.clmanager.gwt.main.server.MessageTemplateServiceImpl"/>
 	<servlet path="/MessagePhotoService" class="net.deuce.clmanager.gwt.main.server.MessagePhotoServiceImpl"/>
-	<stylesheet src="js/ext/resources/css/ext-all.css" />
-	<script src="js/ext/adapter/ext/ext-base.js" />
-	<script src="js/ext/ext-all.js" />
 	<servlet path="/MailService" class="net.deuce.clmanager.gwt.main.server.MailServiceImpl"/>
 	<servlet path="/UserService" class="net.deuce.clmanager.gwt.main.server.UserServiceImpl"/>
-	<!-- inherits name="net.deuce.clmanager.gwt.main.Main"/-->
+
+	<!--stylesheet src="js/ext/resources/css/ext-all.css" />
+	<script src="js/ext/adapter/ext/ext-base.js" />
+	<script src="js/ext/ext-all.js" /-->
 	
 </module>

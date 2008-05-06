@@ -10,7 +10,7 @@ public class NumberTextBox extends TextBox {
     private int maxValue;
     private String previousValue;
 
-    public NumberTextBox(int minValue, int maxValue, int initialValue) {
+    public NumberTextBox(int minValue, int maxValue, int initialValue, int fieldLength) {
         super();
         if (maxValue < minValue) {
             this.minValue = 0;
@@ -31,8 +31,8 @@ public class NumberTextBox extends TextBox {
             initialValue = maxValue;
         }
         setValue(initialValue);
-        setMaxLength(2);
-        setVisibleLength(2);
+        setMaxLength(fieldLength);
+        setVisibleLength(fieldLength);
         
         super.addChangeListener(new ChangeListener() {
             public void onChange(Widget sender) {
