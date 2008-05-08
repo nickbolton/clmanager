@@ -11,19 +11,21 @@ import net.mygwt.ui.client.util.Format;
 import net.mygwt.ui.client.widget.ToolBar;
 import net.mygwt.ui.client.widget.ToolItem;
 import net.mygwt.ui.client.widget.WidgetContainer;
-import net.mygwt.ui.client.widget.layout.FillLayout;
-import net.mygwt.ui.client.widget.layout.RowData;
-import net.mygwt.ui.client.widget.layout.RowLayout;
 
+import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.ScrollPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class PostView extends ReplyView {
 
-    private WidgetContainer wrapper;
+    private VerticalPanel panel = new VerticalPanel();
+    private VerticalPanel headerPanel = new VerticalPanel();
+    private HTML body = new HTML();
+    private ScrollPanel scroller = new ScrollPanel(body);
+    
     private ToolBar toolBar;
-    private WidgetContainer bodyWrapper;
-    private HTML header;
-    private HTML body;
+    private HTML header = new HTML();
     private PostModel post;
     
     private String headerHTML =
@@ -35,12 +37,8 @@ public class PostView extends ReplyView {
     
         
     protected void initialize() {
-        wrapper = new WidgetContainer();
-        wrapper.setLayout(new RowLayout(Style.VERTICAL));
         
         toolBar = new ToolBar();
-        
-        wrapper.add(toolBar, new RowData(RowData.FILL_HORIZONTAL));
         
         ToolItem flagItem = new ToolItem(Style.PUSH);
         flagItem.setText("Flag");
@@ -85,18 +83,22 @@ public class PostView extends ReplyView {
         });
         toolBar.add(newReplyItem);
         
-        header = new HTML("");
-        wrapper.add(header, new RowData(RowData.FILL_HORIZONTAL));
-        
-        body = new HTML();
         body.setWordWrap(true);
-        bodyWrapper = new WidgetContainer();
-        bodyWrapper.setLayout(new FillLayout());
-        bodyWrapper.setScrollEnabled(true);
-        bodyWrapper.setStyleAttribute("word-wrap", "break-word");
-        bodyWrapper.add(body);
+
+        headerPanel.add(toolBar);
+        headerPanel.add(header);
+        headerPanel.setWidth("100%");
+
+        DockPanel innerPanel = new DockPanel();
+        innerPanel.add(headerPanel, DockPanel.NORTH);
+        innerPanel.add(scroller, DockPanel.CENTER);
+
+        innerPanel.setCellHeight(scroller, "100%");
+        panel.add(innerPanel);
+        innerPanel.setSize("100%", "100%");
+        scroller.setSize("100%", "100%");
         
-        wrapper.add(bodyWrapper, new RowData(RowData.FILL_BOTH));
+        body.setStyleName("postView-body");
     }
     
     
@@ -120,14 +122,10 @@ public class PostView extends ReplyView {
                 };
                 String s = Format.substitute(headerHTML, values);
                 header.setHTML(s);
-                //DOM.setInnerHTML(header.getElement(), s);
                 
-                s = "<div style='padding: 12px; font-size: 16px; '><pre>"
-                    + post.getContent().trim() + "</pre></div>";
-                //DOM.setInnerHTML(body.getElement(), s);
-                body.setHTML(s);
+                body.setHTML(post.getContent().trim());
 
-                south.add(wrapper);
+                south.add(panel);
                 south.layout(true);
 
             }
