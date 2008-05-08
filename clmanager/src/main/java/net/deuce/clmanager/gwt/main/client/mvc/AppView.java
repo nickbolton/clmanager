@@ -22,6 +22,7 @@ import net.mygwt.ui.client.widget.layout.BorderLayoutData;
 import net.mygwt.ui.client.widget.layout.FillLayout;
 import asquare.gwt.debug.client.DebugConsole;
 
+import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -32,7 +33,6 @@ public class AppView extends BaseView {
     private WidgetContainer main;
     private ContentPanel center;
     private WidgetContainer south;
-    private ToolBar toolbar;
     private boolean debugShowing = false;
 
     public AppView(Controller controller) {
@@ -44,13 +44,23 @@ public class AppView extends BaseView {
       viewport.setStyleName("my-border-layout");
       viewport.setLayout(new BorderLayout());
       
-      toolbar = new ToolBar();
-      buildToolbar();
       VerticalPanel toolbarPanel = new VerticalPanel();
+      
+      ToolBar toolbar = new ToolBar();
+      toolbar.setWidth("100%");
+      buildMainToolbar(toolbar);
+      DockPanel topToolbarPanel = new DockPanel();
+      topToolbarPanel.setWidth("100%");
+      topToolbarPanel.add(toolbar, DockPanel.WEST);
+      ToolBar rToolbar = new ToolBar();
+      rToolbar.setWidth(200);
+      buildRightToolbar(rToolbar);
+      topToolbarPanel.add(rToolbar, DockPanel.EAST);
+      
       Label padding = new Label("");
       padding.setHeight("5px");
       toolbarPanel.add(padding);
-      toolbarPanel.add(toolbar);
+      toolbarPanel.add(topToolbarPanel);
       viewport.add(toolbarPanel, new BorderLayoutData(Style.NORTH, 30));
       
       east = new ContentPanel();
@@ -93,8 +103,45 @@ public class AppView extends BaseView {
             break;
         }
     }
+    
+    private void buildRightToolbar(ToolBar toolbar) {
+        ToolItem debugConsoleItem = new ToolItem(Style.PUSH);
+        debugConsoleItem.setText("Debug Console");
+        debugConsoleItem.addSelectionListener(new SelectionListener() {
+          public void widgetSelected(BaseEvent be) {
+              if (!debugShowing) {
+                  final DebugConsole console = DebugConsole.getInstance();
+                  console.enable();
+                  final Dialog dialog = new Dialog(Style.OK | Style.CLOSE);
+                  dialog.setMinimumSize(475, 360);
+                  dialog.center();
+                  dialog.addListener(Events.Close, new Listener() {  
+                      public void handleEvent(BaseEvent be) {  
+                          debugShowing = false;
+                          console.disable();
+                          dialog.getContent().remove(console);
+                      }  
+                  });
+                  dialog.getButtonById(0).addSelectionListener(new SelectionListener() {
+                      public void widgetSelected(BaseEvent be) {
+                          dialog.close();
+                      }
+                  });
+                  dialog.setText("Debug Console");
+                  dialog.getContent().setScrollEnabled(false);
+                  dialog.getContent().add(console);
 
-    private void buildToolbar() {
+                  dialog.open();
+                  debugShowing = true;
+              }
+          }
+        });
+        toolbar.add(debugConsoleItem);
+        
+        toolbar.add(new ToolItemAdapter(new ThemeSelector()));
+    }
+
+    private void buildMainToolbar(ToolBar toolbar) {
       ToolItem setViewItem = new ToolItem(Style.PUSH);
       setViewItem.setText("Set View");
       setViewItem.addSelectionListener(new SelectionListener() {
@@ -121,41 +168,6 @@ public class AppView extends BaseView {
         }
       });
       toolbar.add(messageTemplatesItem);
-      
-      toolbar.add(new ToolItemAdapter(new ThemeSelector()));
-      
-      ToolItem debugConsoleItem = new ToolItem(Style.PUSH);
-      debugConsoleItem.setText("Debug Console");
-      debugConsoleItem.addSelectionListener(new SelectionListener() {
-        public void widgetSelected(BaseEvent be) {
-            if (!debugShowing) {
-                final DebugConsole console = DebugConsole.getInstance();
-                console.enable();
-                final Dialog dialog = new Dialog(Style.OK | Style.CLOSE);
-                dialog.setMinimumSize(475, 360);
-                dialog.center();
-                dialog.addListener(Events.Close, new Listener() {  
-                    public void handleEvent(BaseEvent be) {  
-                        debugShowing = false;
-                        console.disable();
-                        dialog.getContent().remove(console);
-                    }  
-                });
-                dialog.getButtonById(0).addSelectionListener(new SelectionListener() {
-                    public void widgetSelected(BaseEvent be) {
-                        dialog.close();
-                    }
-                });
-                dialog.setText("Debug Console");
-                dialog.getContent().setScrollEnabled(false);
-                dialog.getContent().add(console);
-
-                dialog.open();
-                debugShowing = true;
-            }
-        }
-      });
-      toolbar.add(debugConsoleItem);
       
     }    
 

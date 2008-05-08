@@ -360,98 +360,11 @@ public class PostListView extends ReplyView {
             }
         };
         
-        ToolBar topToolbar = new ToolBar();
-        wrapper.add(topToolbar, new RowData(RowData.FILL_HORIZONTAL));
-        
-        ToolItem clearFilters = new ToolItem(Style.PUSH);
-        clearFilters.setText("Clear Filters");
-        clearFilters.addSelectionListener(new SelectionListener() {
-            public void widgetSelected(BaseEvent be) {
-                
-                final Map preferences = new HashMap();
-                preferences.put("minAge", ""+MIN_AGE);
-                preferences.put("maxAge", ""+MAX_AGE);
-                preferences.put("noFlagged", "false");
-                preferences.put("photosOnly", "false");
-                preferences.put("searchTerm", "");
-                
-                savePreferences(preferences, new AsyncCallback() {
-                    public void onFailure(Throwable caught) {
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
-                    }
-
-                    public void onSuccess(Object result) {
-                        minAge = MIN_AGE;
-                        maxAge = MAX_AGE;
-                        filterFlagged = false;
-                        photosOnly = false;
-                        UserModel user = getUser();
-                        user.addAll(preferences);
-                        filterTextBox.setText("");
-                        minAgeSpinner.setValue(MIN_AGE);
-                        maxAgeSpinner.setValue(MAX_AGE);
-                        filterPhotoItem.setSelected(false);
-                        filterFlaggedItem.setSelected(false);
-                        clearCityFilters(false);
-                        clearCategoryFilters(true); // updates the view
-                        checkForUpdates();
-                    }
-                });
-                
-            }
-        });
-        topToolbar.add(clearFilters);
-        
-        ToolItemAdapter labelAdapter = new ToolItemAdapter(new Label("Message Template"));
-        topToolbar.add(labelAdapter);
-        ToolItemAdapter messageTemplateAdapter = new ToolItemAdapter(getMessageTemplates());
-        topToolbar.add(messageTemplateAdapter);
-        
-        UserModel user = getUser();
-        if (user.getPreference("minAge") != null) {
-            minAge = Integer.valueOf(user.getPreference("minAge")).intValue();
-        } else {
-            minAge = MIN_AGE;
-        }
-        if (user.getPreference("maxAge") != null) {
-            maxAge = Integer.valueOf(user.getPreference("maxAge")).intValue();
-        } else {
-            maxAge = MAX_AGE;
-        }
-        minAgeSpinner = new Spinner("Min Age", MIN_AGE, MAX_AGE, minAge, new Listener() {
-            public void handleEvent(BaseEvent be) {
-                if (be.value != null) {
-                    Integer n = (Integer)be.value;
-                    minAge = n.intValue();
-                    viewer.removeFilter(filter);
-                    viewer.addFilter(filter);  
-                    setPreference("minAge", ""+minAge);
-                    checkForUpdates();
-                }
-            }
-        });
-        topToolbar.add(new ToolItemAdapter(minAgeSpinner));
-        
-        maxAgeSpinner = new Spinner("Max Age", MIN_AGE, MAX_AGE, maxAge, new Listener() {
-            public void handleEvent(BaseEvent be) {
-                if (be.value != null) {
-                    Integer n = (Integer)be.value;
-                    maxAge = n.intValue();
-                    viewer.removeFilter(filter);
-                    viewer.addFilter(filter);  
-                    setPreference("maxAge", ""+maxAge);
-                    checkForUpdates();
-                }
-            }
-        });
-        topToolbar.add(new ToolItemAdapter(maxAgeSpinner));
-        
         toolBar = new ToolBar();
         wrapper.add(toolBar, new RowData(RowData.FILL_HORIZONTAL));
         
         ToolBar actionToolBar = new ToolBar();
         wrapper.add(actionToolBar, new RowData(RowData.FILL_HORIZONTAL));
-
         
         TableColumn[] columns = new TableColumn[7];
         columns[0] = new TableColumn("date", "Date", .11f);
@@ -662,6 +575,46 @@ public class PostListView extends ReplyView {
         });
         toolBar.add(refreshItem);
         
+        toolBar.add(new ToolItem(Style.SEPARATOR));
+        
+        ToolItem clearFilters = new ToolItem(Style.PUSH);
+        clearFilters.setText("Clear Filters");
+        clearFilters.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                
+                final Map preferences = new HashMap();
+                preferences.put("minAge", ""+MIN_AGE);
+                preferences.put("maxAge", ""+MAX_AGE);
+                preferences.put("noFlagged", "false");
+                preferences.put("photosOnly", "false");
+                preferences.put("searchTerm", "");
+                
+                savePreferences(preferences, new AsyncCallback() {
+                    public void onFailure(Throwable caught) {
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                    }
+
+                    public void onSuccess(Object result) {
+                        minAge = MIN_AGE;
+                        maxAge = MAX_AGE;
+                        filterFlagged = false;
+                        photosOnly = false;
+                        UserModel user = getUser();
+                        user.addAll(preferences);
+                        filterTextBox.setText("");
+                        minAgeSpinner.setValue(MIN_AGE);
+                        maxAgeSpinner.setValue(MAX_AGE);
+                        filterPhotoItem.setSelected(false);
+                        filterFlaggedItem.setSelected(false);
+                        clearCityFilters(false);
+                        clearCategoryFilters(true); // updates the view
+                        checkForUpdates();
+                    }
+                });
+                
+            }
+        });
+        toolBar.add(clearFilters);
         
         final ToolItem flagItem = new ToolItem(Style.PUSH);  
         flagItem.setText("Flag");
@@ -675,24 +628,8 @@ public class PostListView extends ReplyView {
         });
         actionToolBar.add(flagItem);
 
-        final ToolItem replyItem = new ToolItem(Style.PUSH);  
-        replyItem.setText("Reply");
-        replyItem.addSelectionListener(new SelectionListener() {
-            public void widgetSelected(BaseEvent be) {
-                setupReply(currentPost);
-            }
-
-        });
-        actionToolBar.add(replyItem);
-        final ToolItem editReplyItem = new ToolItem(Style.PUSH);  
-        editReplyItem.setText("Edit/Reply");
-        editReplyItem.addSelectionListener(new SelectionListener() {
-            public void widgetSelected(BaseEvent be) {
-                setupEditReply(currentPost);
-            }
-
-        });
-        actionToolBar.add(editReplyItem);
+        actionToolBar.add(new ToolItem(Style.SEPARATOR));
+        
         final ToolItem newReplyItem = new ToolItem(Style.PUSH);  
         newReplyItem.setText("New Reply");
         newReplyItem.addSelectionListener(new SelectionListener() {
@@ -702,7 +639,34 @@ public class PostListView extends ReplyView {
 
         });
         actionToolBar.add(newReplyItem);
-                
+        
+        final ToolItem editReplyItem = new ToolItem(Style.PUSH);  
+        editReplyItem.setText("Edit/Reply");
+        editReplyItem.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                setupEditReply(currentPost);
+            }
+
+        });
+        actionToolBar.add(editReplyItem);
+        
+        final ToolItem replyItem = new ToolItem(Style.PUSH);  
+        replyItem.setText("Reply");
+        replyItem.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                setupReply(currentPost);
+            }
+
+        });
+        actionToolBar.add(replyItem);
+        
+        actionToolBar.add(new ToolItem(Style.SEPARATOR));
+        
+        ToolItemAdapter labelAdapter = new ToolItemAdapter(new Label("Message Template"));
+        actionToolBar.add(labelAdapter);
+        ToolItemAdapter messageTemplateAdapter = new ToolItemAdapter(getMessageTemplates());
+        actionToolBar.add(messageTemplateAdapter);
+        
         cityMenu = new Menu();  
         buildCityMenu();
         ToolItem cityMenuItem = new ToolItem(Style.MENU);  
@@ -718,6 +682,7 @@ public class PostListView extends ReplyView {
         
         toolBar.add(categoryMenuItem);
         
+        UserModel user = getUser();
         filterTextBox.setText(user.getPreference("searchTerm"));
         filterTextBox.bind(viewer);
         filterTextBox.addChangeListener(new ChangeListener() {
@@ -827,6 +792,45 @@ public class PostListView extends ReplyView {
         filterMenuItem.setMenu(filterMenu);  
         
         toolBar.add(filterMenuItem);
+        
+        if (user.getPreference("minAge") != null) {
+            minAge = Integer.valueOf(user.getPreference("minAge")).intValue();
+        } else {
+            minAge = MIN_AGE;
+        }
+        if (user.getPreference("maxAge") != null) {
+            maxAge = Integer.valueOf(user.getPreference("maxAge")).intValue();
+        } else {
+            maxAge = MAX_AGE;
+        }
+        minAgeSpinner = new Spinner("Min Age", MIN_AGE, MAX_AGE, minAge, new Listener() {
+            public void handleEvent(BaseEvent be) {
+                if (be.value != null) {
+                    Integer n = (Integer)be.value;
+                    minAge = n.intValue();
+                    viewer.removeFilter(filter);
+                    viewer.addFilter(filter);  
+                    setPreference("minAge", ""+minAge);
+                    checkForUpdates();
+                }
+            }
+        });
+        toolBar.add(new ToolItemAdapter(minAgeSpinner));
+        
+        maxAgeSpinner = new Spinner("Max Age", MIN_AGE, MAX_AGE, maxAge, new Listener() {
+            public void handleEvent(BaseEvent be) {
+                if (be.value != null) {
+                    Integer n = (Integer)be.value;
+                    maxAge = n.intValue();
+                    viewer.removeFilter(filter);
+                    viewer.addFilter(filter);  
+                    setPreference("maxAge", ""+maxAge);
+                    checkForUpdates();
+                }
+            }
+        });
+        toolBar.add(new ToolItemAdapter(maxAgeSpinner));
+        
     }
     
     private void loadPost(long clPostId) {
