@@ -17,13 +17,13 @@ import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
 import net.mygwt.ui.client.widget.Button;
-import net.mygwt.ui.client.widget.ContentPanel;
+import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.BorderLayout;
 import net.mygwt.ui.client.widget.layout.BorderLayoutData;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -37,6 +37,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class ViewEmailSettingsView extends BaseView {
 
+    private Dialog dialog;
     private WidgetContainer page;
     private TextBox smtpServer;
     private CheckBox smtpAuth;
@@ -84,18 +85,8 @@ public class ViewEmailSettingsView extends BaseView {
     }
     
     protected void handleEvent(AppEvent event) {
-        int eventType = event.type;
-        int viewPostList = AppEvents.ViewEmailSettings;
-        if (eventType == viewPostList) {
-            AppEvent evt = new AppEvent(AppEvents.FocusCenter);
-            fireEvent(evt);
-            
-            final ContentPanel focus = (ContentPanel) Registry.get("focus");
-            focus.setText("Email Settings");
-            focus.removeAll();
-            focus.add(page);
-            reset();
-            focus.layout();
+        if (event.type == AppEvents.NavEmailSettings) {
+            dialog.open();
         }
     }
     
@@ -110,35 +101,19 @@ public class ViewEmailSettingsView extends BaseView {
     }
 
     protected void initialize() {
-        page = new WidgetContainer();
-        page.setLayout(new BorderLayout());
-        page.addListener(Events.BeforeRemove, new Listener() {
-            public void handleEvent(BaseEvent be) {
-            }
+        dialog = new Dialog(Style.OK_CANCEL | Style.CLOSE | Style.RESIZE);
+        dialog.setMinimumSize(400, 200);
+        dialog.center();
+        dialog.addListener(Events.Close, new Listener() {  
+            public void handleEvent(BaseEvent be) {  
+                Button btn = dialog.getButtonPressed();  
+                if (btn != null) {  
+                    
+                }  
+            }  
         });
-        FormPanel form = new FormPanel();
-        VerticalPanel vp = new VerticalPanel();
-        
-        smtpAuth = new CheckBox("SMTP AUTH");
-        vp.add(smtpAuth);
-        smtpServer = new TextBox();
-        vp.add(createLabeledField("SMTP Server", smtpServer, 100, 400));
-        smtpPort = new NumberTextBox(0, 99999, 25, 5);
-        vp.add(createLabeledField("SMTP PORT", smtpPort, 100, 400));
-        smtpUser = new TextBox();
-        vp.add(createLabeledField("SMTP Email Address", smtpUser, 100, 400));
-        smtpPassword = new PasswordTextBox();
-        vp.add(createLabeledField("SMTP Password", smtpPassword, 100, 400));
-        fromEmailAddress = new TextBox();
-        vp.add(createLabeledField("From Email Address", fromEmailAddress, 100, 400));
-        bccEmailAddress = new TextBox();
-        vp.add(createLabeledField("BCC Email Address", bccEmailAddress, 100, 400));
-        
-
-        Button saveButton = new Button("Save");
-        saveButton.addSelectionListener(new SelectionListener() {
+        dialog.getButtonById(0).addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
-                
                 final Map preferences = new HashMap();
                 preferences.put("smtpAuth", smtpAuth.getText());
                 preferences.put("smtpServer", smtpServer.getText());
@@ -157,30 +132,52 @@ public class ViewEmailSettingsView extends BaseView {
                 serviceProxy.setPreferences(user.getUsername(), preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         clearModal(modalOriginator);
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
                         clearModal(modalOriginator);
                         UserModel user = (UserModel)Registry.get("user");
                         user.addAll(preferences);
+                        dialog.close();
                     }
                 });
             }
-
         });
-        HorizontalPanel buttons = new HorizontalPanel();
-        vp.add(buttons);
-        buttons.add(saveButton);
-        
-        Button resetButton = new Button("Reset");
-        resetButton.addSelectionListener(new SelectionListener() {
+        dialog.getButtonById(1).addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
-                reset();
+                dialog.close();
             }
         });
-        buttons.add(resetButton);
+        //dialog.addStyleName("my-shell-plain");
+        dialog.setText("Email Settings");
+
+        BorderLayout layout = new BorderLayout();
+        layout.setMargin(0);
+
+        page = dialog.getContent();
+        page.setBorders(false);
+        page.setLayout(layout);
+
+        FormPanel form = new FormPanel();
+        VerticalPanel vp = new VerticalPanel();
         
+        smtpAuth = new CheckBox("SMTP AUTH");
+        vp.add(smtpAuth);
+        smtpServer = new TextBox();
+        vp.add(createLabeledField("SMTP Server", smtpServer, 100, 200));
+        smtpPort = new NumberTextBox(0, 99999, 25, 5);
+        vp.add(createLabeledField("SMTP PORT", smtpPort, 100, 200));
+        smtpUser = new TextBox();
+        vp.add(createLabeledField("SMTP Email Address", smtpUser, 100, 200));
+        smtpPassword = new PasswordTextBox();
+        vp.add(createLabeledField("SMTP Password", smtpPassword, 100, 200));
+        fromEmailAddress = new TextBox();
+        vp.add(createLabeledField("From Email Address", fromEmailAddress, 100, 200));
+        bccEmailAddress = new TextBox();
+        vp.add(createLabeledField("BCC Email Address", bccEmailAddress, 100, 200));
+        
+
         form.setWidget(vp);
         page.add(form, new BorderLayoutData(Style.CENTER));
     }

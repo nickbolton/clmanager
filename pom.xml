@@ -30,6 +30,7 @@
     <gxt.version>1.0-beta2</gxt.version>
     <portlet-api.version>1.0</portlet-api.version>
     <postgresql.version>8.2-504.jdbc3</postgresql.version>
+    <resource-pool.version>1.0.0-rc-8-SNAPSHOT</resource-pool.version>
     <servlet-api.version>2.4</servlet-api.version>
     <scrapeforge.version>0.0.1</scrapeforge.version>
     <spring.version>2.5.3</spring.version>

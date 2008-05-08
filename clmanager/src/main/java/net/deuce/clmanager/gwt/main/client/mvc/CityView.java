@@ -1,5 +1,7 @@
 package net.deuce.clmanager.gwt.main.client.mvc;
 
+import java.util.List;
+
 import net.deuce.clmanager.gwt.main.client.CityService;
 import net.deuce.clmanager.gwt.main.client.CityServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
@@ -9,41 +11,47 @@ import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
+import net.mygwt.ui.client.event.BaseEvent;
+import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
 import net.mygwt.ui.client.viewer.CheckStateChangedEvent;
 import net.mygwt.ui.client.viewer.ICheckStateListener;
+import net.mygwt.ui.client.viewer.ISelectionChangedListener;
 import net.mygwt.ui.client.viewer.ModelLabelProvider;
+import net.mygwt.ui.client.viewer.SelectionChangedEvent;
 import net.mygwt.ui.client.viewer.TreeViewer;
 import net.mygwt.ui.client.viewer.TreeViewerFilterTextBox;
 import net.mygwt.ui.client.viewer.Viewer;
 import net.mygwt.ui.client.viewer.ViewerFilter;
 import net.mygwt.ui.client.viewer.ViewerSorter;
-import net.mygwt.ui.client.widget.SearchableExpandItem;
+import net.mygwt.ui.client.widget.ContentPanel;
+import net.mygwt.ui.client.widget.ToolItem;
 import net.mygwt.ui.client.widget.tree.Tree;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.Widget;
 
 public class CityView extends BaseView {
 
     private Tree tree;
 
     private TreeViewer folders;
-
+    private TreeViewerFilterTextBox filterTextBox;
+    private ViewerFilter filter;
     private Folder root;
+    private ContentPanel panel;
 
     public CityView(Controller controller) {
         super(controller);
     }
 
-    TreeViewer getTreeViewer() {
-        return folders;
-    }
-
     protected void initialize() {
+        root = new Folder("root");
         tree = new Tree(Style.CHECK);
         tree.setItemImageStyle("tree-folder");
         tree.setSelectionMode(Style.MULTI);
@@ -72,6 +80,14 @@ public class CityView extends BaseView {
                 return super.compare(viewer, e1, e2);
             }
         });
+        folders.addSelectionListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                Object element = event.getSelection().getFirstElement();
+                if (element != null) {
+                    folders.setChecked(element, !folders.getChecked(element));
+                }
+            }
+        });
         folders.addCheckStateListener(new ICheckStateListener() {
             public void checkStateChanged(CheckStateChangedEvent event) {
                 final Object element = event.getElement();
@@ -86,14 +102,15 @@ public class CityView extends BaseView {
                         serviceProxy.subscribe(userModel.getUsername(), ((CityModel) element).getName(),
                             state, new AsyncCallback() {
                                 public void onFailure(Throwable caught) {
-                                    Window.alert(DebugUtils
+                                    Debug.println(DebugUtils
                                         .getStacktraceAsString(caught));
                                 }
 
                                 public void onSuccess(Object result) {
                                     CityModel city = (CityModel) element;
+                                    root.remove(city);
                                     city.setSubscribed(new Boolean(state));
-                                    folders.setInput(root);
+                                    root.add(city);
                                     AppEvent evt = new AppEvent(AppEvents.CitySubscribed);
                                     evt.data = city;
                                     fireEvent(evt);
@@ -114,21 +131,17 @@ public class CityView extends BaseView {
             }
             
         });
-        /*
-        folders.addSelectionListener(new ISelectionChangedListener() {
-
-            public void selectionChanged(SelectionChangedEvent se) {
-                AppEvent evt = new AppEvent(AppEvents.ViewPostList, se
-                    .getSelection());
-                fireEvent(evt);
+        
+        filterTextBox = new TreeViewerFilterTextBox();
+        filterTextBox.bind(folders);
+        filterTextBox.setText(getUser().getPreference("citySearchTerm"));
+        filterTextBox.addChangeListener(new ChangeListener() {
+            public void onChange(Widget sender) {
+                savePreference("citySearchTerm", filterTextBox.getText(), null);
             }
 
         });
-        */
-        
-        final TreeViewerFilterTextBox filterTextBox = new TreeViewerFilterTextBox();
-        filterTextBox.bind(folders);
-        ViewerFilter filter = new ViewerFilter() {
+        filter = new ViewerFilter() {
             public boolean select(Viewer viewer, Object parent, Object element) {
                 if (filterTextBox.getText().length() == 0) {
                     return true;
@@ -140,31 +153,59 @@ public class CityView extends BaseView {
                         filterTextBox.getText().toLowerCase()) >= 0) {
                         return true;
                     }
-                } else if (element instanceof CategoryModel) {
-                    CategoryModel category = (CategoryModel)element;
-                    return select(viewer, null, category.getParent());
                 }
                 return false;
             }
 
         };
+        
+        folders.setContentProvider(new CityContentProvider());
+        
         folders.addFilter(filter);
-
-        SearchableExpandItem citiesItem = (SearchableExpandItem) Registry.get("citiesItem");
-        citiesItem.setFilterTextBox(filterTextBox);
-        citiesItem.getContainer().add(tree);
-        citiesItem.getContainer().layout(true);
-
-        root = new Folder("root");
-        folders.setContentProvider(new CityContentProvider((UserModel)Registry.get("user"), this));
-        folders.setInput(root);
+        
+        CityServiceAsync serviceProxy = (CityServiceAsync)GWT.create(CityService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CityService");
+        final String modalOriginator = "CityContentProvider.CityService::getCities";
+        goModal(modalOriginator, "Loading Cities...");
+        serviceProxy.getCities(getUser().getUsername(), new AsyncCallback() {
+            public void onFailure (Throwable caught) { 
+                clearModal(modalOriginator);
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
+            } 
+                 
+            public void onSuccess (Object result) { 
+                clearModal(modalOriginator);
+                List l = (List)result;
+                for (int i=0; i<l.size(); i++) {
+                    CityModel model = (CityModel)l.get(i);
+                    root.add(model);
+                }
+                folders.setInput(root);
+            } 
+        });
         
     }
 
     protected void handleEvent(AppEvent event) {
-        if (event.type == AppEvents.NavCities) {
-            AppEvent evt = new AppEvent(AppEvents.UnfocusCenter);
-            fireEvent(evt);
+        if (event.type == AppEvents.ViewCities) {
+            if (panel == null) {
+                panel = (ContentPanel)event.data;
+                panel.setText("Cities");
+                panel.add(tree);
+                panel.setScrollEnabled(true);
+                panel.getHeader().addWidget(filterTextBox);
+                final ToolItem clearSearchButton = new ToolItem(Style.PUSH);
+                clearSearchButton.setText("x");
+                clearSearchButton.addSelectionListener(new SelectionListener() {
+                    public void widgetSelected(BaseEvent be) {
+                        filterTextBox.setText("");
+                        folders.refresh();
+                        savePreference("citySearchTerm", "", null);
+                    }
+                });
+                panel.getHeader().addWidget(clearSearchButton);
+            }
         }
     }
     

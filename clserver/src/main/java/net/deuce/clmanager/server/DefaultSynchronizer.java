@@ -276,6 +276,11 @@ public class DefaultSynchronizer implements Synchronizer, InitializingBean {
             return running;
         }
         
+        private void refreshSession() {
+            closeSession();
+            openSession();
+        }
+        
         private void openSession() {
             Session session = SessionFactoryUtils.getSession(sessionFactory, true);
             TransactionSynchronizationManager.bindResource(sessionFactory,
@@ -291,10 +296,11 @@ public class DefaultSynchronizer implements Synchronizer, InitializingBean {
                 sessionFactory);
         }
         
-        public void run() {
+        private List<Post> getPosts() {
             openSession();
             try {
-                execute();
+                String url = buildUrl(city, category);
+                return scraper.scrape(city, category, url);
             } catch (Exception e) {
                 result.setSucceeded(false);
                 result.setException(e);
@@ -302,6 +308,42 @@ public class DefaultSynchronizer implements Synchronizer, InitializingBean {
             } finally {
                 running = false;
                 closeSession();
+            }
+            return null;
+        }
+        
+        public void run() {
+            List<Post> posts = getPosts();
+            if (posts == null) return;
+            for (Post p : posts) {
+                openSession();
+                try {
+                    Post fetchedPost = postDao.findUniqueByClId(p.getClId());
+                    Set<Image> images = p.getImages();
+                    if (fetchedPost == null) {
+                        log.info("Adding post: " + p.getClId() + " - " + p.getTitle());
+                        postDao.create(p);
+                        for (Image image : images) {
+                            imageDao.create(image);
+                        }
+                    } else {
+                        if (p.isFlagged() && !fetchedPost.isFlagged()) {
+                            fetchedPost.setFlagged(true);
+                            postDao.update(fetchedPost);
+                        } else if (p.isSpam() && !fetchedPost.isSpam()) {
+                            System.out.println("Marking as spam: " + p.getClId());
+                            fetchedPost.setSpam(true);
+                            postDao.update(fetchedPost);
+                        }
+                    }
+                } catch (Exception e) {
+                    result.setSucceeded(false);
+                    result.setException(e);
+                    log.error(e);
+                } finally {
+                    running = false;
+                    closeSession();
+                }
             }
         }
         
@@ -313,31 +355,6 @@ public class DefaultSynchronizer implements Synchronizer, InitializingBean {
             }
             url.append(category.getExternalName()).append('/');
             return url.toString();
-        }
-
-        private void execute() throws Exception {
-            String url = buildUrl(city, category);
-            List<Post> posts = scraper.scrape(city, category, url);
-            for (Post p : posts) {
-                Post fetchedPost = postDao.findUniqueByClId(p.getClId());
-                Set<Image> images = p.getImages();
-                if (fetchedPost == null) {
-                    log.info("Adding post: " + p.getClId() + " - " + p.getTitle());
-                    postDao.create(p);
-                    for (Image image : images) {
-                        imageDao.create(image);
-                    }
-                } else {
-                    if (p.isFlagged() && !fetchedPost.isFlagged()) {
-                        fetchedPost.setFlagged(true);
-                        postDao.update(fetchedPost);
-                    } else if (p.isSpam() && !fetchedPost.isSpam()) {
-                        System.out.println("Marking as spam: " + p.getClId());
-                        fetchedPost.setSpam(true);
-                        postDao.update(fetchedPost);
-                    }
-                }
-            }
         }
 
         public ScrapResult call() throws Exception {

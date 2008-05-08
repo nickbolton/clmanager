@@ -86,13 +86,18 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         
         int index=0;
         Query query = session.createQuery(sb.toString());
+        StringBuffer msg = new StringBuffer("Post query: " + query.getQueryString());
+        msg.append('\n');
         for (int i=0; i<postingGroups.size(); i++) {
             PostingGroup pg = (PostingGroup)postingGroups.get(i);
             if (pg.isActive()) {
+                msg.append("\tString: ").append(pg.getCity()).append('\n');
                 query.setString(index++, pg.getCity());
+                msg.append("\tString: ").append(pg.getCategory()).append('\n');
                 query.setString(index++, pg.getCategory());
             }
         }
+        System.out.println(msg.toString());
         query.setMaxResults(200);
         return query;
     }
@@ -128,29 +133,39 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
         
         int index=0;
         Query query = session.createQuery(sb.toString());
+        StringBuffer msg = new StringBuffer("new post query: " + query.getQueryString());
+        msg.append('\n');
         for (int i=0; i<postingGroups.size(); i++) {
             PostingGroup pg = (PostingGroup)postingGroups.get(i);
             if (pg.isActive()) {
+                msg.append("\tLong: ").append(pg.getLastFetched().longValue()).append('\n');
                 query.setLong(index++, pg.getLastFetched().longValue());
+                msg.append("\tString: ").append(pg.getCity()).append('\n');
                 query.setString(index++, pg.getCity());
+                msg.append("\tString: ").append(pg.getCategory()).append('\n');
                 query.setString(index++, pg.getCategory());
             }
         }
         if (postFilter != null) {
             if (postFilter.getMinAge() > 0) {
+                msg.append("\tInteger: ").append(postFilter.getMinAge()).append('\n');
                 query.setInteger(index++, postFilter.getMinAge());
             }
             if (postFilter.getMaxAge() < 99) {
+                msg.append("\tInteger: ").append(postFilter.getMaxAge()).append('\n');
                 query.setInteger(index++, postFilter.getMaxAge());
             }
             if (postFilter.getNoFlagged()) {
-                query.setBoolean(index++, true);
+                msg.append("\tBoolean: false").append('\n');
+                query.setBoolean(index++, false);
             }
             if (postFilter.getPhotosOnly()) {
+                msg.append("\tBoolean: true").append('\n');
                 query.setBoolean(index++, true);
             }
         }
         query.setMaxResults(200);
+        System.out.println(msg.toString());
         return query;
     }
     
@@ -203,7 +218,7 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
             PostActivities pa = activityMap.get(p);
             if (!p.isFlagged() || (pa != null && pa.isViewed())) {
                 PostModel model = buildPostModel(p, pa);
-                if (postFilter == null || (postFilter.getSearchTerm().trim().length() > 0 && postContainsSearchTerm(model, postFilter.getSearchTerm().trim()))) {
+                if (postFilter == null || (postFilter.getSearchTerm().trim().length() == 0 || postContainsSearchTerm(model, postFilter.getSearchTerm().trim()))) {
                     result.add(model);
                 }
             }
@@ -216,7 +231,6 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
            
         try {
             Query query = buildPostQuery(session, postingGroups);
-            System.out.println("ZZZ executing query: " + query.getQueryString());
             List<Post> l = query.list();
             if (l.size() > 0) {
                 List<PostActivities> activities = getPostActivitiesDao().findByUsername(username);
@@ -254,7 +268,9 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
             List<Post> l = query.list();
             if (l.size() > 0) {
                 List<PostActivities> activities = getPostActivitiesDao().findByUsername(username);
-                return filterPosts(l, activities, postFilter);
+                List result = filterPosts(l, activities, postFilter);
+                System.out.println("ZZZ get new posts returning " + result.size() + " posts for postingGroups: " + postingGroups);
+                return result;
             }
             return EMPTY_RESULT;
         } catch (Throwable e) {

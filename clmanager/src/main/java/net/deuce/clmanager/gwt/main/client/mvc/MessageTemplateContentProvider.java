@@ -11,9 +11,9 @@ import net.mygwt.ui.client.data.LoadConfig;
 import net.mygwt.ui.client.viewer.IAsyncContentCallback;
 import net.mygwt.ui.client.viewer.IContentProvider;
 import net.mygwt.ui.client.viewer.RemoteContentProvider;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
@@ -38,7 +38,7 @@ public class MessageTemplateContentProvider extends RemoteContentProvider
         serviceProxy.getMessageTemplates(new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 view.clearModal(modalOriginator);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 

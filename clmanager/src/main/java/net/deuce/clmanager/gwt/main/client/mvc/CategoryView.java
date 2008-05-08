@@ -1,5 +1,7 @@
 package net.deuce.clmanager.gwt.main.client.mvc;
 
+import java.util.List;
+
 import net.deuce.clmanager.gwt.main.client.CategoryService;
 import net.deuce.clmanager.gwt.main.client.CategoryServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
@@ -8,31 +10,40 @@ import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
+import net.mygwt.ui.client.event.BaseEvent;
+import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
 import net.mygwt.ui.client.viewer.CheckStateChangedEvent;
 import net.mygwt.ui.client.viewer.ICheckStateListener;
+import net.mygwt.ui.client.viewer.ISelectionChangedListener;
 import net.mygwt.ui.client.viewer.ModelLabelProvider;
+import net.mygwt.ui.client.viewer.SelectionChangedEvent;
 import net.mygwt.ui.client.viewer.TreeViewer;
 import net.mygwt.ui.client.viewer.TreeViewerFilterTextBox;
 import net.mygwt.ui.client.viewer.Viewer;
 import net.mygwt.ui.client.viewer.ViewerFilter;
 import net.mygwt.ui.client.viewer.ViewerSorter;
-import net.mygwt.ui.client.widget.SearchableExpandItem;
+import net.mygwt.ui.client.widget.ContentPanel;
+import net.mygwt.ui.client.widget.ToolItem;
 import net.mygwt.ui.client.widget.tree.Tree;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.ChangeListener;
+import com.google.gwt.user.client.ui.Widget;
 
 public class CategoryView extends BaseView {
 
     private Tree tree;
-
+    TreeViewerFilterTextBox filterTextBox;
+    ViewerFilter filter;
     private TreeViewer folders;
 
     private Folder root;
+    private ContentPanel panel;
 
     public CategoryView(Controller controller) {
         super(controller);
@@ -43,6 +54,7 @@ public class CategoryView extends BaseView {
     }
 
     protected void initialize() {
+        root = new Folder("root");
         tree = new Tree(Style.CHECK);
         tree.setItemImageStyle("tree-folder");
         tree.setSelectionMode(Style.MULTI);
@@ -71,6 +83,14 @@ public class CategoryView extends BaseView {
                 return super.compare(viewer, e1, e2);
             }
         });
+        folders.addSelectionListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                Object element = event.getSelection().getFirstElement();
+                if (element != null) {
+                    folders.setChecked(element, !folders.getChecked(element));
+                }
+            }
+        });
         folders.addCheckStateListener(new ICheckStateListener() {
             public void checkStateChanged(CheckStateChangedEvent event) {
                 final Object element = event.getElement();
@@ -85,14 +105,16 @@ public class CategoryView extends BaseView {
                         serviceProxy.subscribe(userModel.getUsername(), ((CategoryModel) element).getName(),
                             state, new AsyncCallback() {
                                 public void onFailure(Throwable caught) {
-                                    Window.alert(DebugUtils
+                                    Debug.println(DebugUtils
                                         .getStacktraceAsString(caught));
                                 }
 
                                 public void onSuccess(Object result) {
                                     CategoryModel cat = (CategoryModel) element;
                                     cat.setSubscribed(new Boolean(state));
-                                    folders.setInput(root);
+                                    root.remove(cat);
+                                    cat.setSubscribed(new Boolean(state));
+                                    root.add(cat);
                                     AppEvent evt = new AppEvent(AppEvents.CategorySubscribed);
                                     evt.data = cat;
                                     fireEvent(evt);
@@ -113,35 +135,30 @@ public class CategoryView extends BaseView {
             }
             
         });
-        /*
-        folders.addSelectionListener(new ISelectionChangedListener() {
-
-            public void selectionChanged(SelectionChangedEvent se) {
-                AppEvent evt = new AppEvent(AppEvents.ViewPostList, se
-                    .getSelection());
-                fireEvent(evt);
+        
+        filterTextBox = new TreeViewerFilterTextBox();
+        filterTextBox.bind(folders);
+        filterTextBox.setText(getUser().getPreference("categorySearchTerm"));
+        filterTextBox.addChangeListener(new ChangeListener() {
+            public void onChange(Widget sender) {
+                savePreference("categorySearchTerm", filterTextBox.getText(), null);
             }
 
         });
-        */
         
-        final TreeViewerFilterTextBox filterTextBox = new TreeViewerFilterTextBox();
         filterTextBox.bind(folders);
-        ViewerFilter filter = new ViewerFilter() {
+        filter = new ViewerFilter() {
             public boolean select(Viewer viewer, Object parent, Object element) {
                 if (filterTextBox.getText().length() == 0) {
                     return true;
                 }
 
                 if (element instanceof CategoryModel) {
-                    CategoryModel cat = (CategoryModel) element;
-                    if (cat.getName().toLowerCase().indexOf(
+                    CategoryModel category = (CategoryModel) element;
+                    if (category.getName().toLowerCase().indexOf(
                         filterTextBox.getText().toLowerCase()) >= 0) {
                         return true;
                     }
-                } else if (element instanceof CategoryModel) {
-                    CategoryModel category = (CategoryModel)element;
-                    return select(viewer, null, category.getParent());
                 }
                 return false;
             }
@@ -149,26 +166,51 @@ public class CategoryView extends BaseView {
         };
         folders.addFilter(filter);
 
-        SearchableExpandItem categoriesItem = (SearchableExpandItem) Registry.get("categoriesItem");
-        categoriesItem.setFilterTextBox(filterTextBox);
-        categoriesItem.getContainer().add(tree);
-        categoriesItem.getContainer().layout(true);
-
-        root = new Folder("root");
-        folders.setContentProvider(new CategoryContentProvider((UserModel)Registry.get("user"), this));
-        folders.setInput(root);
+        folders.setContentProvider(new CategoryContentProvider());
         
+        CategoryServiceAsync serviceProxy = (CategoryServiceAsync)GWT.create(CategoryService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CategoryService");
+        final String modalOriginator = "CategoryContentProvider.CategoryService::getCategories";
+        goModal(modalOriginator, "Loading Categories...");
+        serviceProxy.getCategories(getUser().getUsername(), new AsyncCallback() {
+            public void onFailure (Throwable caught) { 
+                clearModal(modalOriginator);
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
+            } 
+             
+            public void onSuccess (Object result) { 
+                clearModal(modalOriginator);
+                List l = (List)result;
+                for (int i=0; i<l.size(); i++) {
+                    CategoryModel model = (CategoryModel)l.get(i);
+                    root.add(model);
+                }
+                folders.setInput(root);
+            } 
+        });
     }
 
     protected void handleEvent(AppEvent event) {
-        if (event.type == AppEvents.NavCategories) {
-            AppEvent evt = new AppEvent(AppEvents.UnfocusCenter);
-            fireEvent(evt);
+        if (event.type == AppEvents.ViewCategories) {
+            if (panel == null) {
+                panel = (ContentPanel)event.data;
+                panel.setText("Categories");
+                panel.add(tree);
+                panel.setScrollEnabled(true);
+                panel.getHeader().addWidget(filterTextBox);
+                final ToolItem clearSearchButton = new ToolItem(Style.PUSH);
+                clearSearchButton.setText("x");
+                clearSearchButton.addSelectionListener(new SelectionListener() {
+                    public void widgetSelected(BaseEvent be) {
+                        filterTextBox.setText("");
+                        folders.refresh();
+                        savePreference("categorySearchTerm", "", null);
+                    }
+                });
+                panel.getHeader().addWidget(clearSearchButton);
+            }
         }
-    }
-    
-    public void delegateEvent(AppEvent evt) {
-        fireEvent(evt);
     }
 
 }

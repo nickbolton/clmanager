@@ -32,6 +32,11 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import org.springframework.orm.hibernate3.SessionHolder;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 public class DefaultScraper implements Scraper {
     
@@ -47,6 +52,7 @@ public class DefaultScraper implements Scraper {
     private String imagePath;
     private SpamDetector spamDetector;
     private PostDao postDao;
+    private SessionFactory sessionFactory;
     
     public DefaultScraper() {
         client = new HttpClient();
@@ -142,6 +148,7 @@ public class DefaultScraper implements Scraper {
                 if (post.getClId() > 0) {
                     posts.add(post);
                 }
+                refreshSession();
             }
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
@@ -154,6 +161,25 @@ public class DefaultScraper implements Scraper {
         return posts;
     }
     
+    private void refreshSession() {
+        closeSession();
+        openSession();
+    }
+    
+    private void openSession() {
+        Session session = SessionFactoryUtils.getSession(sessionFactory, true);
+        TransactionSynchronizationManager.bindResource(sessionFactory,
+            new SessionHolder(session));
+    }
+
+    private void closeSession() {
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource(sessionFactory);
+        sessionHolder.getSession().flush();
+        sessionHolder.getSession().close();
+        SessionFactoryUtils.releaseSession(sessionHolder.getSession(),
+            sessionFactory);
+    }
     
     public void scrapePost(Post post, Category category) throws Exception {
         if (log.isDebugEnabled()) {
@@ -281,6 +307,14 @@ public class DefaultScraper implements Scraper {
 
     public void setPostDao(PostDao postDao) {
         this.postDao = postDao;
+    }
+
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
 }
