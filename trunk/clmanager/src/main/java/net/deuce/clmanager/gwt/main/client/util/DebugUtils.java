@@ -5,7 +5,6 @@ import asquare.gwt.debug.client.DebugConsole;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
-import com.google.gwt.user.client.Window;
 
 public class DebugUtils {
     
@@ -40,11 +39,9 @@ public class DebugUtils {
         if (caught != null) {
             final String stacktrace = DebugUtils.getStacktraceAsString(caught);
             Debug.println(stacktrace);
-            Window.alert(stacktrace);
         } else {
             final String message = "Error ocuured, but we have no further information about the cause";
             Debug.println(message);
-            Window.alert(message);
         }
     }
 

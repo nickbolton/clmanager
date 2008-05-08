@@ -12,12 +12,12 @@ import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Dispatcher;
 import net.mygwt.ui.client.mvc.DispatcherListener;
 import net.mygwt.ui.client.widget.Viewport;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.HistoryListener;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
@@ -29,7 +29,7 @@ public class Main implements EntryPoint, HistoryListener {
     private Dispatcher dispatcher;
 
     public void onModuleLoad() {
-        DebugUtils.initDebugAndErrorHandling(20);
+        //DebugUtils.initDebugAndErrorHandling(20);
       //Registry.register("cl", createModel());
         
       
@@ -82,7 +82,7 @@ public class Main implements EntryPoint, HistoryListener {
       target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
       serviceProxy.getUser(username, new AsyncCallback() {
           public void onFailure (Throwable caught) { 
-              Window.alert(DebugUtils.getStacktraceAsString(caught));
+              Debug.println(DebugUtils.getStacktraceAsString(caught));
           } 
            
           public void onSuccess (Object result) { 

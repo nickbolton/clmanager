@@ -82,6 +82,12 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>net.unicon.toro</groupId>
+      <artifactId>resource-pool</artifactId>
+      <version>${resource-pool.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>jaxen</groupId>
       <artifactId>jaxen</artifactId>
       <version>${jaxen.version}</version>

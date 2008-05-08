@@ -58,11 +58,9 @@ import net.mygwt.ui.client.widget.table.TableColumn;
 import net.mygwt.ui.client.widget.table.TableColumnModel;
 import net.mygwt.ui.client.widget.table.TableItem;
 import asquare.gwt.debug.client.Debug;
-import asquare.gwt.debug.client.DebugConsole;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.ChangeListener;
@@ -88,18 +86,17 @@ public class PostListView extends ReplyView {
     private Menu categoryMenu;
     private Map columnModelMap;
     private Timer timer;
-    private boolean filterFlagged = false;
-    private boolean photosOnly = false;
     private Object updateLock = new Object();
     private String defaultColor;
     private List posts;
     private PostModel currentPost;
-    private int maxAge;
-    private int minAge;
     private List subscribedCities = new ArrayList();
     private List subscribedCategories = new ArrayList();
     private List postingGroups = new ArrayList();
     private Map modalRequests = new HashMap();
+    
+    private int minAge, maxAge;
+    private boolean  filterFlagged, photosOnly;
 
     public PostListView(Controller controller) {
         super(controller);
@@ -244,7 +241,6 @@ public class PostListView extends ReplyView {
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        DebugConsole.getInstance().show();
                         Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
     
@@ -253,9 +249,10 @@ public class PostListView extends ReplyView {
                     }
                     
                 };
-                UserModel userModel = (UserModel)Registry.get("user");
-                PostFilter postFilter = new PostFilter(minAge, maxAge, filterFlagged, photosOnly, filterTextBox.getText().toLowerCase());
-                serviceProxy.getNewPostCount(userModel.getUsername(), postingGroups, postFilter, callback);
+                UserModel user = getUser();
+                PostFilter postFilter = new PostFilter(minAge, maxAge,
+                    filterFlagged, photosOnly, filterTextBox.getText());
+                serviceProxy.getNewPostCount(getUser().getUsername(), postingGroups, postFilter, callback);
             }
         }
     }
@@ -325,7 +322,7 @@ public class PostListView extends ReplyView {
                 }
 
                 boolean filtered = false;
-                UserModel user = (UserModel)Registry.get("user");
+                UserModel user = getUser();
                 Iterator itr = user.getCitySubscriptionFilter().iterator();
                 while (!filtered && itr.hasNext()) {
                     filtered = m.getCity().equals(itr.next());
@@ -370,7 +367,6 @@ public class PostListView extends ReplyView {
         clearFilters.setText("Clear Filters");
         clearFilters.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
-                UserModel user = (UserModel)Registry.get("user");
                 
                 final Map preferences = new HashMap();
                 preferences.put("minAge", ""+MIN_AGE);
@@ -381,7 +377,7 @@ public class PostListView extends ReplyView {
                 
                 savePreferences(preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -389,7 +385,7 @@ public class PostListView extends ReplyView {
                         maxAge = MAX_AGE;
                         filterFlagged = false;
                         photosOnly = false;
-                        UserModel user = (UserModel)Registry.get("user");
+                        UserModel user = getUser();
                         user.addAll(preferences);
                         filterTextBox.setText("");
                         minAgeSpinner.setValue(MIN_AGE);
@@ -411,7 +407,7 @@ public class PostListView extends ReplyView {
         ToolItemAdapter messageTemplateAdapter = new ToolItemAdapter(getMessageTemplates());
         topToolbar.add(messageTemplateAdapter);
         
-        UserModel user = (UserModel)Registry.get("user");
+        UserModel user = getUser();
         if (user.getPreference("minAge") != null) {
             minAge = Integer.valueOf(user.getPreference("minAge")).intValue();
         } else {
@@ -485,7 +481,7 @@ public class PostListView extends ReplyView {
                     target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
                     AsyncCallback callback = new AsyncCallback() {
                         public void onFailure(Throwable caught) {
-                            Window.alert(DebugUtils.getStacktraceAsString(caught));
+                            Debug.println(DebugUtils.getStacktraceAsString(caught));
                         }
 
                         public void onSuccess(Object result) {
@@ -493,8 +489,7 @@ public class PostListView extends ReplyView {
                         }
                         
                     };
-                    UserModel userModel = (UserModel)Registry.get("user");
-                    serviceProxy.setViewed(userModel.getUsername(), post.getId(), callback);
+                    serviceProxy.setViewed(getUser().getUsername(), post.getId(), callback);
 
                 }
             }
@@ -587,7 +582,7 @@ public class PostListView extends ReplyView {
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         clearModal(modalOriginator);
-                        //Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
     
                     public void onSuccess(Object result) {
@@ -644,9 +639,8 @@ public class PostListView extends ReplyView {
                     }
                             
                 };
-                UserModel userModel = (UserModel)Registry.get("user");
                 Debug.println("ZZZ sending getPosts request: " + postingGroups);
-                serviceProxy.getPosts(userModel.getUsername(), postingGroups, callback);
+                serviceProxy.getPosts(getUser().getUsername(), postingGroups, callback);
                 /*
                 if (lastPostReceived > 0) {
                     serviceProxy.getNewPosts(userModel.getUsername(), postingGroups, callback);
@@ -809,7 +803,7 @@ public class PostListView extends ReplyView {
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         clearModal(modalOriginator);
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -822,8 +816,7 @@ public class PostListView extends ReplyView {
                     }
                     
                 };
-                UserModel userModel = (UserModel)Registry.get("user");
-                serviceProxy.setAllViewed(userModel.getUsername(), postingGroups, callback);
+                serviceProxy.setAllViewed(getUser().getUsername(), postingGroups, callback);
 
             }
         });
@@ -845,7 +838,7 @@ public class PostListView extends ReplyView {
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 clearModal(modalOriginator);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -856,8 +849,7 @@ public class PostListView extends ReplyView {
             }
             
         };
-        UserModel userModel = (UserModel)Registry.get("user");
-        serviceProxy.getPostByClId(userModel.getUsername(), clPostId, callback);
+        serviceProxy.getPostByClId(getUser().getUsername(), clPostId, callback);
     }
     
     private boolean menuContainsItem(Menu menu, String name) {
@@ -885,8 +877,7 @@ public class PostListView extends ReplyView {
                 });
                 cityMenu.add(cityItem);  
             }
-            UserModel model = (UserModel)Registry.get("user");
-            model.getCitySubscriptionFilter().add(city.getName());
+            getUser().getCitySubscriptionFilter().add(city.getName());
             enablePostingGroups(city, null, true);
             removeCityFilter(city);
             
@@ -921,8 +912,7 @@ public class PostListView extends ReplyView {
                 });
                 categoryMenu.add(categoryItem);  
             }
-            UserModel model = (UserModel)Registry.get("user");
-            model.getCategorySubscriptionFilter().add(category.getName());
+            getUser().getCategorySubscriptionFilter().add(category.getName());
             enablePostingGroups(null, category, true);
             removeCategoryFilter(category);
         } else {
@@ -945,17 +935,15 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCitySubscriptionFilter().add(city.getName());
+                getUser().getCitySubscriptionFilter().add(city.getName());
                 viewer.setInput(posts);
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.addCityFilter(user.getUsername(), city.getName(), callback);
+        serviceProxy.addCityFilter(getUser().getUsername(), city.getName(), callback);
     }
     
     private void clearCityFilters(final boolean update) {
@@ -964,12 +952,11 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCitySubscriptionFilter().clear();
+                getUser().getCitySubscriptionFilter().clear();
                 for (int i=0; i<cityMenu.getItemCount(); i++) {
                     MenuItem item = cityMenu.getItem(i);
                     item.setSelected(true);
@@ -979,8 +966,7 @@ public class PostListView extends ReplyView {
                 }
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.clearCityFilters(user.getUsername(), callback);
+        serviceProxy.clearCityFilters(getUser().getUsername(), callback);
     }
     
     private void removeCityFilter(final CityModel city) {
@@ -989,17 +975,15 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCitySubscriptionFilter().remove(city.getName());
+                getUser().getCitySubscriptionFilter().remove(city.getName());
                 viewer.setInput(posts);
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.removeCityFilter(user.getUsername(), city.getName(), callback);
+        serviceProxy.removeCityFilter(getUser().getUsername(), city.getName(), callback);
     }
     
     private void addCategoryFilter(final CategoryModel category) {
@@ -1008,17 +992,15 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCategorySubscriptionFilter().add(category.getName());
+                getUser().getCategorySubscriptionFilter().add(category.getName());
                 viewer.setInput(posts);
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.addCategoryFilter(user.getUsername(), category.getName(), callback);
+        serviceProxy.addCategoryFilter(getUser().getUsername(), category.getName(), callback);
     }
     
     private void clearCategoryFilters(final boolean update) {
@@ -1027,12 +1009,11 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCategorySubscriptionFilter().clear();
+                getUser().getCategorySubscriptionFilter().clear();
                 for (int i=0; i<categoryMenu.getItemCount(); i++) {
                     MenuItem item = categoryMenu.getItem(i);
                     item.setSelected(true);
@@ -1042,8 +1023,7 @@ public class PostListView extends ReplyView {
                 }
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.clearCategoryFilters(user.getUsername(), callback);
+        serviceProxy.clearCategoryFilters(getUser().getUsername(), callback);
     }
     
     private void removeCategoryFilter(final CategoryModel category) {
@@ -1052,17 +1032,15 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                UserModel user = (UserModel)Registry.get("user");
-                user.getCategorySubscriptionFilter().remove(category.getName());
+                getUser().getCategorySubscriptionFilter().remove(category.getName());
                 viewer.setInput(posts);
             }
         };
-        UserModel user = (UserModel)Registry.get("user");
-        serviceProxy.removeCategoryFilter(user.getUsername(), category.getName(), callback);
+        serviceProxy.removeCategoryFilter(getUser().getUsername(), category.getName(), callback);
     }
     
     private int activePostingGroupCount() {
@@ -1080,11 +1058,10 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CityService");
         final String modalOriginator = "PostListView.CityService::getSubscribedCities";
         goModal(modalOriginator, "Loading Categories...");
-        UserModel userModel = (UserModel)Registry.get("user");
-        serviceProxy.getSubscribedCities(userModel.getUsername(), new AsyncCallback() {
+        serviceProxy.getSubscribedCities(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
@@ -1097,8 +1074,7 @@ public class PostListView extends ReplyView {
                     if (!menuContainsItem(cityMenu, city.getName())) {
                         final MenuItem cityItem = new MenuItem(Style.CHECK);  
                         cityItem.setText(city.getName());
-                        UserModel user = (UserModel)Registry.get("user");
-                        cityItem.setSelected(!user.getCitySubscriptionFilter().contains(city.getName()));
+                        cityItem.setSelected(!getUser().getCitySubscriptionFilter().contains(city.getName()));
                         cityItem.addSelectionListener(new SelectionListener() {
                             public void widgetSelected(BaseEvent be) {
                                 if (!cityItem.isSelected()) {
@@ -1126,11 +1102,10 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CategoryService");
         final String modalOriginator = "PostListView.CategoryService::getSubscribedCategories";
         goModal(modalOriginator, "Loading Categories...");
-        UserModel userModel = (UserModel)Registry.get("user");
-        serviceProxy.getSubscribedCategories(userModel.getUsername(), new AsyncCallback() {
+        serviceProxy.getSubscribedCategories(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
@@ -1143,8 +1118,7 @@ public class PostListView extends ReplyView {
                     if (!menuContainsItem(categoryMenu, category.getName())) {
                         final MenuItem categoryItem = new MenuItem(Style.CHECK);  
                         categoryItem.setText(category.getName());
-                        UserModel user = (UserModel)Registry.get("user");
-                        categoryItem.setSelected(!user.getCategorySubscriptionFilter().contains(category.getName()));
+                        categoryItem.setSelected(!getUser().getCategorySubscriptionFilter().contains(category.getName()));
                         categoryItem.addSelectionListener(new SelectionListener() {
                             public void widgetSelected(BaseEvent be) {
                                 if (!categoryItem.isSelected()) {

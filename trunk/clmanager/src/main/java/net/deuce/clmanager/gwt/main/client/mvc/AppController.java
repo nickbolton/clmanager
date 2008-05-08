@@ -10,6 +10,7 @@ public class AppController extends Controller {
     private ViewEmailSettingsView viewEmailSettingsView;
     private MessageTemplateView messageTemplateView;
     private ViewMessageTemplateView viewMessageTemplateView;
+    private SetViewView setViewView;
     private CityView cityView;
     private CategoryView categoryView;
     private PostListView postListView;
@@ -18,8 +19,6 @@ public class AppController extends Controller {
 
     public AppController() {
       registerEventType(AppEvents.Init);
-      registerEventType(AppEvents.FocusCenter);
-      registerEventType(AppEvents.UnfocusCenter);
       registerEventType(AppEvents.ClearReplyPending);
       registerEventType(AppEvents.PostReplied);
       registerEventType(AppEvents.PostReplyFailed);
@@ -28,10 +27,11 @@ public class AppController extends Controller {
       registerEventType(AppEvents.NavMessageTemplates);
       registerEventType(AppEvents.ViewMessageTemplate);
       registerEventType(AppEvents.NavEmailSettings);
-      registerEventType(AppEvents.ViewEmailSettings);
-      registerEventType(AppEvents.NavCities);
+      registerEventType(AppEvents.NavEmailSettings);
+      registerEventType(AppEvents.NavSetView);
+      registerEventType(AppEvents.ViewCities);
+      registerEventType(AppEvents.ViewCategories);
       registerEventType(AppEvents.CitySubscribed);
-      registerEventType(AppEvents.NavCategories);
       registerEventType(AppEvents.CategorySubscribed);
       registerEventType(AppEvents.ViewPostList);
       registerEventType(AppEvents.ViewPost);
@@ -40,12 +40,8 @@ public class AppController extends Controller {
     public void handleEvent(AppEvent event) {
         switch (event.type) {
         case AppEvents.Init:
-            forwardToView(postListView, event);
-        case AppEvents.FocusCenter:
-        case AppEvents.UnfocusCenter:
             forwardToView(appView, event);
-            break;
-        case AppEvents.ViewEmailSettings:
+        case AppEvents.NavEmailSettings:
             forwardToView(viewEmailSettingsView, event);
             break;
         case AppEvents.RefreshMessageTemplates:
@@ -58,10 +54,13 @@ public class AppController extends Controller {
         case AppEvents.ViewMessageTemplate:
             forwardToView(viewMessageTemplateView, event);
             break;
-        case AppEvents.NavCities:
+        case AppEvents.NavSetView:
+            forwardToView(setViewView, event);
+            break;
+        case AppEvents.ViewCities:
             forwardToView(cityView, event);
             break;
-        case AppEvents.NavCategories:
+        case AppEvents.ViewCategories:
             forwardToView(categoryView, event);
             break;
         case AppEvents.ClearReplyPending:
@@ -85,6 +84,7 @@ public class AppController extends Controller {
       viewEmailSettingsView = new ViewEmailSettingsView(this);
       messageTemplateView = new MessageTemplateView(this);
       viewMessageTemplateView = new ViewMessageTemplateView(this);
+      setViewView = new SetViewView(this);
       cityView = new CityView(this);
       categoryView = new CategoryView(this);
       postListView = new PostListView(this);

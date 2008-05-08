@@ -7,8 +7,8 @@ import net.deuce.clmanager.gwt.main.client.model.CityModel;
 import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
 import net.mygwt.ui.client.viewer.IAsyncContentCallback;
 import net.mygwt.ui.client.widget.LoadingPanel;
+import asquare.gwt.debug.client.Debug;
 
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public class CategoryAsyncCallback implements AsyncCallback {
@@ -25,7 +25,7 @@ public class CategoryAsyncCallback implements AsyncCallback {
     
     public void onFailure (Throwable caught) { 
         LoadingPanel.get().hide();
-        Window.alert(DebugUtils.getStacktraceAsString(caught));
+        Debug.println(DebugUtils.getStacktraceAsString(caught));
     } 
      
     public void onSuccess (Object result) { 

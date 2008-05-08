@@ -4,10 +4,8 @@ public class AppEvents {
 
     public static final int Init = 0;
     
-    public static final int FocusCenter = 2;
-    public static final int UnfocusCenter = 4;
-    
-    public static final int NavCities = 10;
+    public static final int NavSetView = 10;
+    public static final int ViewCities = 11;
     public static final int CitySubscribed = 12;
     
     public static final int ViewPostList = 14;
@@ -24,10 +22,9 @@ public class AppEvents {
     public static final int ViewMessageTemplate = 42;
     public static final int RefreshMessageTemplates = 44;
     
-    public static final int NavCategories = 50;
+    public static final int ViewCategories = 50; 
     public static final int CategorySubscribed = 52; 
     
     public static final int NavEmailSettings = 60;
-    public static final int ViewEmailSettings = 62;
     
 }

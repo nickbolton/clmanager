@@ -31,9 +31,9 @@ import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.MessageBox;
 import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.FillLayout;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.ChangeListener;
@@ -58,7 +58,7 @@ public abstract class ReplyView extends BaseView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -91,7 +91,7 @@ public abstract class ReplyView extends BaseView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessageTemplateService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -193,7 +193,7 @@ public abstract class ReplyView extends BaseView {
             target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
             AsyncCallback callback = new AsyncCallback() {
                 public void onFailure(Throwable caught) {
-                    Window.alert(DebugUtils.getStacktraceAsString(caught));
+                    Debug.println(DebugUtils.getStacktraceAsString(caught));
                 }
 
                 public void onSuccess(Object result) {
@@ -211,7 +211,7 @@ public abstract class ReplyView extends BaseView {
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 AppEvent evt = new AppEvent(AppEvents.PostReplyFailed, id);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {

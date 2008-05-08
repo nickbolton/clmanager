@@ -122,7 +122,7 @@ public class PostView extends ReplyView {
                 header.setHTML(s);
                 //DOM.setInnerHTML(header.getElement(), s);
                 
-                s = "<div style='padding: 12px; font-size: 14px'><pre>"
+                s = "<div style='padding: 12px; font-size: 16px; '><pre>"
                     + post.getContent().trim() + "</pre></div>";
                 //DOM.setInnerHTML(body.getElement(), s);
                 body.setHTML(s);

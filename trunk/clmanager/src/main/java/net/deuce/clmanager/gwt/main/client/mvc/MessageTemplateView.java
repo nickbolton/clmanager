@@ -19,25 +19,44 @@ import net.mygwt.ui.client.viewer.SelectionChangedEvent;
 import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.ButtonBar;
 import net.mygwt.ui.client.widget.ContentPanel;
+import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.ExpandItem;
 import net.mygwt.ui.client.widget.List;
+import net.mygwt.ui.client.widget.WidgetContainer;
+import net.mygwt.ui.client.widget.layout.BorderLayout;
+import net.mygwt.ui.client.widget.layout.BorderLayoutData;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
 public class MessageTemplateView extends BaseView {
     
+    private Dialog dialog;
     private List list;
     private ListViewer viewer;
     private Folder root;
+    private WidgetContainer page;
+    private WidgetContainer view;
     
     public MessageTemplateView(Controller controller) {
       super(controller);
     }
     
     protected void initialize() {
+        dialog = new Dialog(Style.OK | Style.CLOSE | Style.RESIZE);
+        dialog.setMinimumSize(400, 600);
+        //dialog.addStyleName("my-shell-plain");
+        dialog.setText("Message Templates");
+
+        BorderLayout layout = new BorderLayout();
+        layout.setMargin(0);
+
+        page = dialog.getContent();
+        page.setBorders(false);
+        page.setLayout(layout);
+
         list = new List();
         list.setBorders(false);
         list.setSelectionMode(Style.SINGLE);
@@ -69,7 +88,7 @@ public class MessageTemplateView extends BaseView {
                 mtm.setName("New Message Template");
                 serviceProxy.createMessageTemplate(mtm, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -94,7 +113,7 @@ public class MessageTemplateView extends BaseView {
                     
                     serviceProxy.deleteMessageTemplate(mtm.getId(), new AsyncCallback() {
                         public void onFailure(Throwable caught) {
-                            Window.alert(DebugUtils.getStacktraceAsString(caught));
+                            Debug.println(DebugUtils.getStacktraceAsString(caught));
                         }
     
                         public void onSuccess(Object result) {
@@ -114,14 +133,17 @@ public class MessageTemplateView extends BaseView {
         citiesItem.getContainer().add(list);
         citiesItem.getContainer().layout(true);
         
+        page.add(list, new BorderLayoutData(Style.WEST, .33f));
+        view = new WidgetContainer();
+        Registry.register("messageTemplateView", view);
+        page.add(list, new BorderLayoutData(Style.EAST));
         viewer.setInput(root);
     }
     
     protected void handleEvent(AppEvent event) {
         switch (event.type) {
         case AppEvents.NavMessageTemplates:
-            AppEvent evt = new AppEvent(AppEvents.FocusCenter);
-            fireEvent(evt);
+            dialog.open();
             break;
         case AppEvents.RefreshMessageTemplates:
             viewer.update();

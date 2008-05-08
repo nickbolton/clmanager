@@ -3,7 +3,7 @@
 <beans>
 
 
-    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+    <!--bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
         <property name="driverClassName"><value>org.postgresql.Driver</value></property>
         <property name="url"><value>jdbc:postgresql://localhost:5432/clmanager</value></property>
         <property name="username"><value>deuce</value></property>
@@ -15,6 +15,19 @@
         <property name="testOnReturn"><value>true</value></property>
         <property name="validationQuery"><value>select 1</value></property>
         <property name="poolPreparedStatements"><value>true</value></property>
+    </bean-->
+
+    <bean id="dataSource" class="net.unicon.resource.DataSourceBean">
+        <property name="poolName"><value>clserver</value></property>
+        <property name="driver"><value>org.postgresql.Driver</value></property>
+        <property name="url"><value>jdbc:postgresql://localhost:5432/clmanager</value></property>
+        <property name="user"><value>deuce</value></property>
+        <property name="password"><value>deuce</value></property>
+        <property name="simpleSql"><value>select 1</value></property>
+        <property name="size"><value>20</value></property>
+        <property name="logLevel"><value>5</value></property>
+        <property name="logMicroTimes"><value>false</value></property>
+        <property name="traceCallers"><value>0</value></property>
     </bean>
 
     <bean id="worker" class="net.deuce.clmanager.server.Worker">
@@ -39,6 +52,7 @@
         <property name="imagePath"><value>images</value></property>
         <property name="spamDetector"><ref bean="spamDetector"/></property>
         <property name="postDao"><ref bean="PostDao"/></property>
+        <property name="sessionFactory"><ref bean="sessionFactory"/></property>
     </bean>
 
     <bean id="spamDetector" class="net.deuce.clmanager.server.DefaultSpamDetector">

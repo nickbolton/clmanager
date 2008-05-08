@@ -55,6 +55,10 @@ public abstract class BaseView extends View {
         modalRequests.remove(originator);
     }
     
+    protected UserModel getUser() {
+        return (UserModel)Registry.get("user");
+    }
+    
     protected void savePreferences(Map m, final AsyncCallback callback) {
         UserModel user = (UserModel)Registry.get("user");
         UserServiceAsync serviceProxy = (UserServiceAsync)GWT.create(UserService.class);
@@ -65,7 +69,7 @@ public abstract class BaseView extends View {
         serviceProxy.setPreferences(user.getUsername(), m, new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 clearModal(modalOriginator);
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
                 if (callback != null) {
                     callback.onFailure(caught);
                 }
@@ -87,7 +91,7 @@ public abstract class BaseView extends View {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         serviceProxy.setPreference(user.getUsername(), name, value, new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
                 if (callback != null) {
                     callback.onFailure(caught);
                 }

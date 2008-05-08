@@ -14,11 +14,9 @@ import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
 import net.deuce.clmanager.gwt.main.client.widget.SelectableImage;
-import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.event.BaseEvent;
-import net.mygwt.ui.client.event.Listener;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
@@ -26,13 +24,12 @@ import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.LoadingPanel;
 import net.mygwt.ui.client.widget.WidgetContainer;
-import net.mygwt.ui.client.widget.layout.BorderLayout;
 import net.mygwt.ui.client.widget.layout.BorderLayoutData;
 import net.mygwt.ui.client.widget.layout.RowData;
 import net.mygwt.ui.client.widget.layout.RowLayout;
+import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.FocusWidget;
@@ -52,6 +49,7 @@ public class ViewMessageTemplateView extends BaseView {
     private TextArea messageField;
     private ListBox categories;
     private MessageTemplateModel model;
+    private WidgetContainer container;
     
     public ViewMessageTemplateView(Controller controller) {
         super(controller);
@@ -97,17 +95,14 @@ public class ViewMessageTemplateView extends BaseView {
     protected void handleEvent(AppEvent event) {
         int eventType = event.type;
         int viewPostList = AppEvents.ViewMessageTemplate;
-        if (eventType == viewPostList) {
-            AppEvent evt = new AppEvent(AppEvents.FocusCenter);
-            fireEvent(evt);
-
+        if (event.type == viewPostList) {
             if (event.data instanceof MessageTemplateModel) {
                 model = (MessageTemplateModel) event.data;
                 
-                final ContentPanel focus = (ContentPanel) Registry.get("focus");
-                focus.setText("Edit Message Template");
-                focus.removeAll();
-                focus.add(page);
+                if (container == null) {
+                    container = (ContentPanel) Registry.get("messageTemplateView");
+                    container.add(page);
+                }
                 photos.removeAll();
                 
                 MessagePhotoServiceAsync serviceProxy = (MessagePhotoServiceAsync)GWT.create(MessagePhotoService.class);
@@ -115,7 +110,7 @@ public class ViewMessageTemplateView extends BaseView {
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessagePhotoService");
                 serviceProxy.getMessagePhotos(new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -124,7 +119,7 @@ public class ViewMessageTemplateView extends BaseView {
                             photos.add(new SelectableImage((ImageModel)l.get(i)), new RowData(((RowData.FILL_BOTH))));
                         }
                         reset();
-                        focus.layout(true);
+                        container.layout(true);
                     }
                 });
 
@@ -145,12 +140,7 @@ public class ViewMessageTemplateView extends BaseView {
     }
 
     protected void initialize() {
-        page = new WidgetContainer();
-        page.setLayout(new BorderLayout());
-        page.addListener(Events.BeforeRemove, new Listener() {
-            public void handleEvent(BaseEvent be) {
-            }
-        });
+
         FormPanel form = new FormPanel();
         VerticalPanel vp = new VerticalPanel();
         vp.add(form);
@@ -187,7 +177,7 @@ public class ViewMessageTemplateView extends BaseView {
                 serviceProxy.updateMessageTemplate(model, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         LoadingPanel.get().hide();
-                        Window.alert(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(DebugUtils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -241,7 +231,7 @@ public class ViewMessageTemplateView extends BaseView {
         serviceProxy.getSubscribedCategories(userModel.getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 LoadingPanel.get().hide();
-                Window.alert(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(DebugUtils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
