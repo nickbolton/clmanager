@@ -46,7 +46,7 @@ public class DefaultSpamDetector implements SpamDetector {
         boolean suspicious = false;
         while (!suspicious && itr.hasNext()) {
             String key = (String)itr.next();
-            if ("maxConsecutiveCapitalWords".equals(key) || "validTags".equals(key)) continue;
+            if (Utils.isEqual("maxConsecutiveCapitalWords", key) || Utils.isEqual("validTags", key)) continue;
             
             String exp = blacklist.getProperty(key);
             String[] split = exp.split(",");
@@ -64,7 +64,7 @@ public class DefaultSpamDetector implements SpamDetector {
             String tag = m.group(1).toLowerCase();
             boolean foundValid = false;
             for (int i=0; !foundValid && i<validTags.length; i++) {
-                foundValid = validTags[i].toLowerCase().equals(tag);
+                foundValid = Utils.isEqual(validTags[i].toLowerCase(), tag);
             }
             suspicious = !foundValid;
         }
