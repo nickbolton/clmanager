@@ -101,7 +101,7 @@ public class DefaultSynchronizer implements Synchronizer, InitializingBean {
         List<Element> links = doc.selectNodes("//*[name() = 'a']");
         for (Element e : links) {
             String url = e.attributeValue("href");
-            if (url.equals("http://www.craigslist.org/")) continue;
+            if (Utils.isEqual(url, "http://www.craigslist.org/")) continue;
             Matcher m = cityUrlPattern.matcher(url);
             if (m.find()) {
                 String name = e.getText();
