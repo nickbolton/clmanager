@@ -2,6 +2,7 @@ package net.deuce.clmanager.gwt.main.client.mvc;
 
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.Folder;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.viewer.IAsyncContentCallback;
 import net.mygwt.ui.client.viewer.ICheckStateListener;
 import net.mygwt.ui.client.viewer.ICheckable;
@@ -18,7 +19,7 @@ implements ICheckable {
         if (parent instanceof Folder) {
             final Folder folder = (Folder)parent;
             String parentName = folder.getName();
-            if ("root".equals(parentName)) {
+            if (Utils.isEqual("root", parentName)) {
                 callback.setElements(folder.getChildren().toArray());
             }
         }

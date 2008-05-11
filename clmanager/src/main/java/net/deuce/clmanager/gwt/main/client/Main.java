@@ -5,7 +5,7 @@ import java.util.Date;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.mvc.AppController;
 import net.deuce.clmanager.gwt.main.client.mvc.AppEvents;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.deuce.clmanager.gwt.main.client.widget.LoginWindow;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.mvc.AppEvent;
@@ -82,7 +82,7 @@ public class Main implements EntryPoint, HistoryListener {
       target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
       serviceProxy.getUser(username, new AsyncCallback() {
           public void onFailure (Throwable caught) { 
-              Debug.println(DebugUtils.getStacktraceAsString(caught));
+              Debug.println(Utils.getStacktraceAsString(caught));
           } 
            
           public void onSuccess (Object result) { 

@@ -6,7 +6,7 @@ import java.util.Map;
 import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.mvc.Controller;
@@ -69,7 +69,7 @@ public abstract class BaseView extends View {
         serviceProxy.setPreferences(user.getUsername(), m, new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
                 if (callback != null) {
                     callback.onFailure(caught);
                 }
@@ -91,7 +91,7 @@ public abstract class BaseView extends View {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         serviceProxy.setPreference(user.getUsername(), name, value, new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
                 if (callback != null) {
                     callback.onFailure(caught);
                 }

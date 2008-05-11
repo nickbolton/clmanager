@@ -9,21 +9,23 @@ public class PostFilter extends Model {
         setMaxAge(99);
         setNoFlagged(false);
         setPhotosOnly(false);
+        setUnreadOnly(false);
         setSearchTerm("");
     }
     
-    public PostFilter(int minAge, int maxAge, boolean noFlagged, boolean photosOnly, String searchTerm) {
+    public PostFilter(int minAge, int maxAge, boolean unreadOnly, boolean noFlagged, boolean photosOnly, String searchTerm) {
         setMinAge(minAge);
         setMaxAge(maxAge);
         setNoFlagged(noFlagged);
         setPhotosOnly(photosOnly);
+        setUnreadOnly(unreadOnly);
         setSearchTerm(searchTerm);
     }
     
     public String toString() {
         return "PostFilter(minAge="+getMinAge()+", maxAge="+getMaxAge()+", "+
             "noFlagged="+getNoFlagged()+", photosOnly="+getPhotosOnly()+
-            ", searchTerm="+getSearchTerm();
+            "unreadOnly="+getUnreadOnly()+", searchTerm="+getSearchTerm();
     }
     
     public int getMinAge() {
@@ -56,6 +58,14 @@ public class PostFilter extends Model {
     
     public void setPhotosOnly(boolean photosOnly) {
         set("photosOnly", new Boolean(photosOnly));
+    }
+    
+    public boolean getUnreadOnly() {
+        return ((Boolean)get("unreadOnly")).booleanValue();
+    }
+    
+    public void setUnreadOnly(boolean unreadOnly) {
+        set("unreadOnly", new Boolean(unreadOnly));
     }
     
     public String getSearchTerm() {

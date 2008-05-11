@@ -105,6 +105,7 @@ public class AppView extends BaseView {
     }
     
     private void buildRightToolbar(ToolBar toolbar) {
+        toolbar.add(new ToolItem(Style.FILL));
         ToolItem debugConsoleItem = new ToolItem(Style.PUSH);
         debugConsoleItem.setText("Debug Console");
         debugConsoleItem.addSelectionListener(new SelectionListener() {

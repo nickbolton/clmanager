@@ -18,7 +18,7 @@ import net.deuce.clmanager.gwt.main.client.model.MailResponse;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
 import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
@@ -58,7 +58,7 @@ public abstract class ReplyView extends BaseView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -91,7 +91,7 @@ public abstract class ReplyView extends BaseView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessageTemplateService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -107,7 +107,7 @@ public abstract class ReplyView extends BaseView {
                     MessageTemplateModel mtm = (MessageTemplateModel)l.get(i);
                     messageTemplates.addItem(mtm.getName());
                     messageTemplateMap.put(mtm.getName(), mtm);
-                    if (s != null && s.equals(mtm.getName())) {
+                    if (s != null && Utils.isEqual(s, mtm.getName())) {
                         selectedIndex = i+1;
                     }
                 }
@@ -138,10 +138,10 @@ public abstract class ReplyView extends BaseView {
     private MessageTemplateModel getTemplate(PostModel post) {
         MessageTemplateModel mtm = null;
         String selectedTemplateName = messageTemplates.getItemText(messageTemplates.getSelectedIndex());
-        if ("Category Default".equals(selectedTemplateName)) {
+        if (Utils.isEqual("Category Default", selectedTemplateName)) {
             for (int i=0; mtm == null && i<messageTemplateModels.size(); i++) {
                 MessageTemplateModel m = (MessageTemplateModel)messageTemplateModels.get(i);
-                if (post.getCategory().equals(m.getCategoryName())) {
+                if (Utils.isEqual(post.getCategory(), m.getCategoryName())) {
                     mtm = m;
                 }
             }
@@ -193,7 +193,7 @@ public abstract class ReplyView extends BaseView {
             target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
             AsyncCallback callback = new AsyncCallback() {
                 public void onFailure(Throwable caught) {
-                    Debug.println(DebugUtils.getStacktraceAsString(caught));
+                    Debug.println(Utils.getStacktraceAsString(caught));
                 }
 
                 public void onSuccess(Object result) {
@@ -211,7 +211,7 @@ public abstract class ReplyView extends BaseView {
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 AppEvent evt = new AppEvent(AppEvents.PostReplyFailed, id);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -231,7 +231,7 @@ public abstract class ReplyView extends BaseView {
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 MessageBox messageSent = new MessageBox(Style.ICON_ERROR, Style.MODAL | Style.OK);
-                messageSent.setMessage(DebugUtils.getStacktraceAsString(caught));
+                messageSent.setMessage(Utils.getStacktraceAsString(caught));
                 messageSent.open();
                 AppEvent evt = new AppEvent(AppEvents.ClearReplyPending, post.getClId());
                 fireEvent(evt);

@@ -5,7 +5,7 @@ import java.util.List;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateService;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.data.DataCallback;
 import net.mygwt.ui.client.data.LoadConfig;
 import net.mygwt.ui.client.viewer.IAsyncContentCallback;
@@ -38,7 +38,7 @@ public class MessageTemplateContentProvider extends RemoteContentProvider
         serviceProxy.getMessageTemplates(new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 view.clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 

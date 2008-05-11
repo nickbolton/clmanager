@@ -7,7 +7,7 @@ import net.deuce.clmanager.gwt.main.client.CategoryServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.Folder;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.event.BaseEvent;
@@ -105,7 +105,7 @@ public class CategoryView extends BaseView {
                         serviceProxy.subscribe(userModel.getUsername(), ((CategoryModel) element).getName(),
                             state, new AsyncCallback() {
                                 public void onFailure(Throwable caught) {
-                                    Debug.println(DebugUtils
+                                    Debug.println(Utils
                                         .getStacktraceAsString(caught));
                                 }
 
@@ -168,6 +168,10 @@ public class CategoryView extends BaseView {
 
         folders.setContentProvider(new CategoryContentProvider());
         
+        loadCategories();
+    }
+    
+    private void loadCategories() {
         CategoryServiceAsync serviceProxy = (CategoryServiceAsync)GWT.create(CategoryService.class);
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CategoryService");
@@ -176,7 +180,7 @@ public class CategoryView extends BaseView {
         serviceProxy.getCategories(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
@@ -209,6 +213,8 @@ public class CategoryView extends BaseView {
                     }
                 });
                 panel.getHeader().addWidget(clearSearchButton);
+            } else if (root.getChildCount() == 0) {
+                loadCategories();
             }
         }
     }
