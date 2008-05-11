@@ -4,10 +4,12 @@ import net.deuce.clmanager.gwt.main.client.MessageTemplateService;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.Folder;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
+import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.event.BaseEvent;
+import net.mygwt.ui.client.event.Listener;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
@@ -17,11 +19,11 @@ import net.mygwt.ui.client.viewer.ListViewer;
 import net.mygwt.ui.client.viewer.ModelLabelProvider;
 import net.mygwt.ui.client.viewer.SelectionChangedEvent;
 import net.mygwt.ui.client.widget.Button;
-import net.mygwt.ui.client.widget.ButtonBar;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.Dialog;
-import net.mygwt.ui.client.widget.ExpandItem;
 import net.mygwt.ui.client.widget.List;
+import net.mygwt.ui.client.widget.ToolBar;
+import net.mygwt.ui.client.widget.ToolItem;
 import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.BorderLayout;
 import net.mygwt.ui.client.widget.layout.BorderLayoutData;
@@ -37,8 +39,8 @@ public class MessageTemplateView extends BaseView {
     private List list;
     private ListViewer viewer;
     private Folder root;
-    private WidgetContainer page;
-    private WidgetContainer view;
+    private ContentPanel messageTemplateView;
+    private WidgetContainer listView;
     
     public MessageTemplateView(Controller controller) {
       super(controller);
@@ -46,16 +48,30 @@ public class MessageTemplateView extends BaseView {
     
     protected void initialize() {
         dialog = new Dialog(Style.OK | Style.CLOSE | Style.RESIZE);
-        dialog.setMinimumSize(400, 600);
+        dialog.setMinimumSize(800, 355);
         //dialog.addStyleName("my-shell-plain");
         dialog.setText("Message Templates");
+        
+        dialog.addListener(Events.Close, new Listener() {  
+            public void handleEvent(BaseEvent be) {  
+                Button btn = dialog.getButtonPressed();  
+                if (btn != null) {  
+                    
+                }  
+            }  
+        });
+        dialog.getButtonById(0).addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                dialog.close();
+            }
+        });
 
         BorderLayout layout = new BorderLayout();
         layout.setMargin(0);
-
-        page = dialog.getContent();
-        page.setBorders(false);
-        page.setLayout(layout);
+        
+        WidgetContainer c = dialog.getContent();
+        c.setBorders(false);
+        c.setLayout(layout);
 
         list = new List();
         list.setBorders(false);
@@ -76,19 +92,19 @@ public class MessageTemplateView extends BaseView {
             }
         });
         
-        ButtonBar buttonBar = new ButtonBar(Style.LEFT);
-        Button addButton = new Button("+");
-        addButton.setSize(20, 20);
-        addButton.addSelectionListener(new SelectionListener() {
+        ToolBar toolbar = new ToolBar();
+        ToolItem addItem = new ToolItem(Style.PUSH);
+        addItem.setText("+");
+        addItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 MessageTemplateServiceAsync serviceProxy = (MessageTemplateServiceAsync)GWT.create(MessageTemplateService.class);
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessageTemplateService");
                 final MessageTemplateModel mtm = new MessageTemplateModel();
-                mtm.setName("New Message Template");
+                mtm.setName("New");
                 serviceProxy.createMessageTemplate(mtm, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -99,10 +115,11 @@ public class MessageTemplateView extends BaseView {
                 });
             }
         });
-        buttonBar.add(addButton);
-        Button deleteButton = new Button("-");
-        deleteButton.setSize(20, 20);
-        deleteButton.addSelectionListener(new SelectionListener() {
+        toolbar.add(addItem);
+        
+        ToolItem deleteItem = new ToolItem(Style.PUSH);
+        deleteItem.setText("-");
+        deleteItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 MessageTemplateServiceAsync serviceProxy = (MessageTemplateServiceAsync)GWT.create(MessageTemplateService.class);
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
@@ -113,12 +130,11 @@ public class MessageTemplateView extends BaseView {
                     
                     serviceProxy.deleteMessageTemplate(mtm.getId(), new AsyncCallback() {
                         public void onFailure(Throwable caught) {
-                            Debug.println(DebugUtils.getStacktraceAsString(caught));
+                            Debug.println(Utils.getStacktraceAsString(caught));
                         }
     
                         public void onSuccess(Object result) {
-                            final ContentPanel focus = (ContentPanel) Registry.get("focus");
-                            focus.removeAll();
+                            messageTemplateView.removeAll();
                             viewer.setInput(root);
                         }
                         
@@ -126,17 +142,18 @@ public class MessageTemplateView extends BaseView {
                 }
             }
         });
-        buttonBar.add(deleteButton);
+        toolbar.add(deleteItem);
         
-        ExpandItem citiesItem = (ExpandItem) Registry.get("messageTemplateItem");
-        citiesItem.getContainer().add(buttonBar);
-        citiesItem.getContainer().add(list);
-        citiesItem.getContainer().layout(true);
+        listView = new WidgetContainer();
+        listView.setScrollEnabled(true);
         
-        page.add(list, new BorderLayoutData(Style.WEST, .33f));
-        view = new WidgetContainer();
-        Registry.register("messageTemplateView", view);
-        page.add(list, new BorderLayoutData(Style.EAST));
+        listView.add(toolbar);
+        listView.add(list);
+        
+        c.add(listView, new BorderLayoutData(Style.WEST, 100));
+        messageTemplateView = new ContentPanel();
+        Registry.register("messageTemplateView", messageTemplateView);
+        c.add(messageTemplateView, new BorderLayoutData(Style.CENTER));
         viewer.setInput(root);
     }
     

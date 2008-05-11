@@ -12,10 +12,9 @@ import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.ImageModel;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.deuce.clmanager.gwt.main.client.widget.SelectableImage;
 import net.mygwt.ui.client.Registry;
-import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
@@ -24,27 +23,26 @@ import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.LoadingPanel;
 import net.mygwt.ui.client.widget.WidgetContainer;
-import net.mygwt.ui.client.widget.layout.BorderLayoutData;
-import net.mygwt.ui.client.widget.layout.RowData;
-import net.mygwt.ui.client.widget.layout.RowLayout;
 import asquare.gwt.debug.client.Debug;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
+import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class ViewMessageTemplateView extends BaseView {
 
-    private WidgetContainer page;
-    private WidgetContainer photos;
+    private DockPanel page;
+    private VerticalPanel photos;
     private TextBox nameField;
     private TextArea messageField;
     private ListBox categories;
@@ -64,7 +62,7 @@ public class ViewMessageTemplateView extends BaseView {
     private void selectPhoto(ImageModel im) {
         for (int i=0; i<photos.getWidgetCount(); i++) {
             SelectableImage si = (SelectableImage)photos.getWidget(i);
-            if (si.getImageModel().getPath().equals(im.getPath())) {
+            if (Utils.isEqual(si.getImageModel().getPath(), im.getPath())) {
                 si.setSelected(true);
             }
         }
@@ -77,7 +75,7 @@ public class ViewMessageTemplateView extends BaseView {
         if (model.getCategoryName() != null) {
             int itemIndex=-1;
             for (int i=0; itemIndex < 0 && i<categories.getItemCount(); i++) {
-                if (categories.getItemText(itemIndex).equals(model.getCategoryName())) {
+                if (Utils.isEqual(categories.getItemText(i), model.getCategoryName())) {
                     itemIndex = i;
                 }
             }
@@ -98,34 +96,15 @@ public class ViewMessageTemplateView extends BaseView {
         if (event.type == viewPostList) {
             if (event.data instanceof MessageTemplateModel) {
                 model = (MessageTemplateModel) event.data;
-                
                 if (container == null) {
                     container = (ContentPanel) Registry.get("messageTemplateView");
+                    container.removeAll();
                     container.add(page);
+                    container.setBorders(true);
+                    container.layout(true);
                 }
-                photos.removeAll();
-                
-                MessagePhotoServiceAsync serviceProxy = (MessagePhotoServiceAsync)GWT.create(MessagePhotoService.class);
-                ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
-                target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessagePhotoService");
-                serviceProxy.getMessagePhotos(new AsyncCallback() {
-                    public void onFailure(Throwable caught) {
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
-                    }
-
-                    public void onSuccess(Object result) {
-                        List l = (List)result;
-                        for (int i=0; i<l.size(); i++) {
-                            photos.add(new SelectableImage((ImageModel)l.get(i)), new RowData(((RowData.FILL_BOTH))));
-                        }
-                        reset();
-                        container.layout(true);
-                    }
-                });
-
-                //viewer.setInput(selection);
-
             }
+            reset();
         }
     }
 
@@ -140,21 +119,27 @@ public class ViewMessageTemplateView extends BaseView {
     }
 
     protected void initialize() {
+        
+        page = new DockPanel();
 
         FormPanel form = new FormPanel();
         VerticalPanel vp = new VerticalPanel();
         vp.add(form);
-        page.add(vp, new BorderLayoutData(Style.CENTER));
+        page.add(vp, DockPanel.CENTER);
         
+        HorizontalPanel categoriesPanel = new HorizontalPanel();
+        categoriesPanel.add(new Label("Default Category"));
         categories = new ListBox(false);
         categories.setVisibleItemCount(1);
         buildCategories();
-        vp.add(categories);
+        categoriesPanel.add(categories);
+        vp.add(categoriesPanel);
         
         nameField = new TextBox();
         vp.add(createLabeledField("Name", nameField, 100, 400));
         
         messageField = new TextArea();
+        messageField.setHeight("200px");
         vp.add(createLabeledField("Message", messageField, 100, 400));
 
         Button saveButton = new Button("Save");
@@ -177,7 +162,7 @@ public class ViewMessageTemplateView extends BaseView {
                 serviceProxy.updateMessageTemplate(model, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         LoadingPanel.get().hide();
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -201,11 +186,26 @@ public class ViewMessageTemplateView extends BaseView {
         });
         buttons.add(resetButton);
         
-        photos = new WidgetContainer();
-        photos.setBorders(true);
-        page.add(photos, new BorderLayoutData(Style.EAST, 300, 150, 250));
-        photos.setScrollEnabled(true);
-        photos.setLayout(new RowLayout());
+        photos = new VerticalPanel();
+        photos.setBorderWidth(5);
+        page.add(new ScrollPanel(photos), DockPanel.EAST);
+        
+        MessagePhotoServiceAsync serviceProxy = (MessagePhotoServiceAsync)GWT.create(MessagePhotoService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessagePhotoService");
+        serviceProxy.getMessagePhotos(new AsyncCallback() {
+            public void onFailure(Throwable caught) {
+                Debug.println(Utils.getStacktraceAsString(caught));
+            }
+
+            public void onSuccess(Object result) {
+                List l = (List)result;
+                for (int i=0; i<l.size(); i++) {
+                    photos.add(new SelectableImage((ImageModel)l.get(i)));
+                }
+                reset();
+            }
+        });
         
     }
     
@@ -215,7 +215,6 @@ public class ViewMessageTemplateView extends BaseView {
             fetchAndBuildCategories();
             return;
         }
-        Object[][] categoryData = new Object[l.size()][];
         for (int i=0; i<l.size(); i++) {
             CategoryModel category = (CategoryModel)l.get(i);
             categories.addItem(category.getName());
@@ -231,7 +230,7 @@ public class ViewMessageTemplateView extends BaseView {
         serviceProxy.getSubscribedCategories(userModel.getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 LoadingPanel.get().hide();
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 

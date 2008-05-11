@@ -18,17 +18,19 @@ import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.CityModel;
+import net.deuce.clmanager.gwt.main.client.model.Folder;
 import net.deuce.clmanager.gwt.main.client.model.PostFilter;
 import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.deuce.clmanager.gwt.main.client.model.PostingGroup;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.deuce.clmanager.gwt.main.client.widget.Spinner;
 import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.data.DataCallback;
 import net.mygwt.ui.client.data.LoadConfig;
+import net.mygwt.ui.client.data.LoadResult;
 import net.mygwt.ui.client.data.Model;
 import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.Listener;
@@ -38,13 +40,14 @@ import net.mygwt.ui.client.mvc.Controller;
 import net.mygwt.ui.client.viewer.CellLabelProvider;
 import net.mygwt.ui.client.viewer.IAsyncContentCallback;
 import net.mygwt.ui.client.viewer.ModelCellLabelProvider;
-import net.mygwt.ui.client.viewer.RemoteContentProvider;
+import net.mygwt.ui.client.viewer.ModelRemoteContentProvider;
 import net.mygwt.ui.client.viewer.TableViewer;
 import net.mygwt.ui.client.viewer.Viewer;
 import net.mygwt.ui.client.viewer.ViewerFilter;
 import net.mygwt.ui.client.viewer.ViewerFilterTextBox;
 import net.mygwt.ui.client.viewer.ViewerSorter;
 import net.mygwt.ui.client.widget.ContentPanel;
+import net.mygwt.ui.client.widget.LoadingPanel;
 import net.mygwt.ui.client.widget.ToolBar;
 import net.mygwt.ui.client.widget.ToolItem;
 import net.mygwt.ui.client.widget.ToolItemAdapter;
@@ -72,14 +75,17 @@ public class PostListView extends ReplyView {
     private static int MIN_AGE = 0;
     private static int MAX_AGE = 99;
     
+    private ContentPanel mainPanel;
     private WidgetContainer wrapper;
     private Table table;
     private TableViewer viewer;
+    private ViewerFilter filter;
     private ToolBar toolBar;
     private ToolItem refreshItem;
     private ViewerFilterTextBox filterTextBox;
     private Spinner minAgeSpinner;
     private Spinner maxAgeSpinner;
+    private MenuItem unreadOnlyItem;
     private MenuItem filterFlaggedItem;
     private MenuItem filterPhotoItem;
     private Menu cityMenu;
@@ -88,15 +94,16 @@ public class PostListView extends ReplyView {
     private Timer timer;
     private Object updateLock = new Object();
     private String defaultColor;
-    private List posts;
+    private Folder postsFolder = new Folder("posts");
     private PostModel currentPost;
     private List subscribedCities = new ArrayList();
     private List subscribedCategories = new ArrayList();
     private List postingGroups = new ArrayList();
     private Map modalRequests = new HashMap();
+    private ModelRemoteContentProvider contentProvider;
     
     private int minAge, maxAge;
-    private boolean  filterFlagged, photosOnly;
+    private boolean  filterFlagged, photosOnly, autoFetch, unreadOnly;
 
     public PostListView(Controller controller) {
         super(controller);
@@ -104,6 +111,151 @@ public class PostListView extends ReplyView {
         columnModelMap = new HashMap();
         columnModelMap.put("fav", "favorite");
         columnModelMap.put("res", "responded");
+        
+        contentProvider = new ModelRemoteContentProvider() {
+
+            public void getData(LoadConfig config, DataCallback dataCallback) {
+                System.out.println("ZZZ getData");
+                if (activePostingGroupCount() == 0) {
+                    return;
+                }
+                reloadPosts(dataCallback);
+            }
+
+            public void getElements(Object input, final IAsyncContentCallback contentCallback) {
+                System.out.println("ZZZ getElements");
+                Folder f = (Folder)input;
+                contentCallback.setElements(f.getChildren().toArray());
+            }
+            
+        };
+    }
+    
+    private void dumpPosts() {
+        for (int i=0; i<postsFolder.getChildCount(); i++) {
+            PostModel pm = (PostModel)postsFolder.getChild(i);
+            Debug.println("Post: " + pm.getClId() + ", " + pm.getDate());
+            System.out.println("Post: " + pm.getClId() + ", " + pm.getDate());
+        }
+    }
+    
+    private void setDataResults(List posts, DataCallback dataCallback) {
+        synchronized (updateLock) {
+            for (int i=0; i<posts.size(); i++) {
+                PostModel pm = (PostModel)posts.get(i);
+                        
+                Debug.println("received post: " + pm);
+                PostingGroup pg = getPostingGroup(pm.getCity(), pm.getCategory());
+                if (pg.getLastFetched().longValue() < pm.getClId().longValue()) {
+                    pg.setLastFetched(pm.getClId());
+                }
+            }
+            LoadResult loadResult = new LoadResult();
+            postsFolder.setChildren(posts);
+            loadResult.setData(postsFolder);
+            dataCallback.setResult(loadResult);
+            updateRefreshButton(0);
+        }
+    }
+    
+    private void fetchNewPosts() {
+        PostServiceAsync serviceProxy = (PostServiceAsync)GWT.create(PostService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
+        AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable caught) {
+                LoadingPanel.get().hide();
+                Debug.println(Utils.getStacktraceAsString(caught));
+                reloadTimer(true);
+            }
+
+            public void onSuccess(Object result) {
+                LoadingPanel.get().hide();
+                List l = (List)result;
+                System.out.println("new post count: " + l.size());
+                if (l.size() > 0) {
+                    Debug.println("START");
+                    System.out.println("START");
+                    dumpPosts();
+                    
+                    for (int i=l.size()-1; i>=0; i--) {
+                        PostModel pm = (PostModel)l.get(i);
+                        postsFolder.insert(pm, 0);
+                        PostingGroup pg = getPostingGroup(pm.getCity(), pm.getCategory());
+                        if (pg.getLastFetched().longValue() < pm.getClId().longValue()) {
+                            pg.setLastFetched(pm.getClId());
+                        }
+                    }
+                    
+                    Debug.println("ADDED NEW POSTS");
+                    System.out.println("ADDED NEW POSTS");
+                    dumpPosts();
+                    
+                    /*
+                    Collections.sort(postsFolder.getChildren(), new Comparator() {
+                        public int compare(Object o1, Object o2) {
+                            PostModel pm1 = (PostModel)o1;
+                            PostModel pm2 = (PostModel)o2;
+                            return pm2.getClId().compareTo(pm1.getClId());
+                        }
+                    });
+                    */
+                            
+                    while (postsFolder.getChildCount() > 100) {
+                        postsFolder.remove(postsFolder.getChildCount()-1);
+                    }
+                    
+                    Debug.println("TRIMMED POSTS");
+                    System.out.println("TRIMMED POSTS");
+                    dumpPosts();
+                    //ISelection selection = viewer.getSelection();
+                    viewer.applyFilters();
+                    //if (selection != null) {
+                    //    viewer.setSelection(selection, true);
+                    //}
+                }
+                
+                reloadTimer(true);
+            }
+                    
+        };
+        Debug.println("sending getPosts request: " + postingGroups);
+        serviceProxy.getNewPosts(getUser().getUsername(), postingGroups, null,callback);
+    }
+    
+    private void reloadTimer(boolean fireAlways) {
+        if (timer == null) {
+            timer = new Timer() {
+                public void run() {
+                    checkForUpdates();
+                }
+            };
+            timer.schedule(10000);
+        } else if (fireAlways) {
+            timer.schedule(10000);
+        }
+    }
+    
+    private void reloadPosts(final DataCallback dataCallback) {
+        PostServiceAsync serviceProxy = (PostServiceAsync)GWT.create(PostService.class);
+        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
+        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
+        AsyncCallback callback = new AsyncCallback() {
+            public void onFailure(Throwable caught) {
+                LoadingPanel.get().hide();
+                Debug.println(Utils.getStacktraceAsString(caught));
+                reloadTimer(false);
+            }
+
+            public void onSuccess(Object result) {
+                LoadingPanel.get().hide();
+                setDataResults((List)result, dataCallback);                    
+                reloadTimer(false);
+            }
+                    
+        };
+        Debug.println("sending getPosts request: " + postingGroups);
+        serviceProxy.getPosts(getUser().getUsername(), postingGroups, callback);
     }
     
     private void setPostingGroupActive(String city, String category) {
@@ -133,7 +285,7 @@ public class PostListView extends ReplyView {
             setPostingGroupActive(city.getName(), category.getName());
         }
         if (reload) {
-            viewer.setInput(posts);
+            viewer.applyFilters();
         }
     }
     
@@ -141,13 +293,13 @@ public class PostListView extends ReplyView {
         ListIterator itr = postingGroups.listIterator();
         while (itr.hasNext()) {
             PostingGroup pg = (PostingGroup)itr.next();
-            if (city != null && pg.getCity().equals(city.getName())) {
+            if (city != null && Utils.isEqual(pg.getCity(), city.getName())) {
                 pg.setActive(false);
-            } else if (category != null && pg.getCategory().equals(category.getName())) {
+            } else if (category != null && Utils.isEqual(pg.getCategory(), category.getName())) {
                 pg.setActive(false);
             }
         }
-        viewer.setInput(posts);
+        viewer.applyFilters();
     }
     
     private PostingGroup getPostingGroup(String city, String category) {
@@ -155,7 +307,7 @@ public class PostListView extends ReplyView {
         PostingGroup pg;
         while (itr.hasNext()) {
             pg = (PostingGroup)itr.next();
-            if (pg.getCity().equals(city) && pg.getCategory().equals(category)) return pg;
+            if (Utils.isEqual(pg.getCity(), city) && Utils.isEqual(pg.getCategory(), category)) return pg;
         }
         return null;
     }
@@ -186,8 +338,8 @@ public class PostListView extends ReplyView {
     }
 
     private PostModel getPostModel(Long id) {
-        for (int i=0; i<posts.size(); i++) {
-            PostModel pm = (PostModel)posts.get(i);
+        for (int i=0; i<postsFolder.getChildCount(); i++) {
+            PostModel pm = (PostModel)postsFolder.getChild(i);
             if (pm.getId().longValue() == id.longValue()) {
                 return pm;
             }
@@ -200,6 +352,12 @@ public class PostListView extends ReplyView {
         case AppEvents.Init:
             break;
         case AppEvents.ViewPostList:
+            if (mainPanel == null) {
+                mainPanel = (ContentPanel) Registry.get("center");
+                mainPanel.removeAll();
+                mainPanel.add(wrapper);
+                mainPanel.layout(true);
+            }
             refresh();
             break;
         case AppEvents.PostReplyFailed:
@@ -234,23 +392,27 @@ public class PostListView extends ReplyView {
     }
     
     private void checkForUpdates() {
-        synchronized (updateLock) {
+        if (autoFetch) {
+            refresh();
+        } else {
             if (activePostingGroupCount() > 0) {
                 PostServiceAsync serviceProxy = (PostServiceAsync)GWT.create(PostService.class);
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
+                        timer.schedule(10000);
                     }
-    
+        
                     public void onSuccess(Object result) {
                         updateRefreshButton(((Integer)result).intValue());
+                        timer.schedule(10000);
                     }
-                    
+                        
                 };
                 UserModel user = getUser();
-                PostFilter postFilter = new PostFilter(minAge, maxAge,
+                PostFilter postFilter = new PostFilter(minAge, maxAge, unreadOnly,
                     filterFlagged, photosOnly, filterTextBox.getText());
                 serviceProxy.getNewPostCount(getUser().getUsername(), postingGroups, postFilter, callback);
             }
@@ -258,66 +420,59 @@ public class PostListView extends ReplyView {
     }
     
     private void refresh() {
-        posts = null;
-        Iterator itr = postingGroups.iterator();
-        while (itr.hasNext()) {
-            ((PostingGroup)itr.next()).setLastFetched(new Long(0L));
+        if (!autoFetch || postsFolder.getChildCount() == 0) {
+            Iterator itr = postingGroups.iterator();
+            while (itr.hasNext()) {
+                ((PostingGroup)itr.next()).setLastFetched(new Long(0L));
+            }
+            Debug.println("Refreshing with postingGroups: " + postingGroups);
+            contentProvider.load();
+        } else {
+            fetchNewPosts();
         }
-        Debug.println("Refreshing with postingGroups: " + postingGroups);
-        viewPostList();
     }
     
-    private void viewPostList() {
-        ContentPanel center = (ContentPanel) Registry.get("center");
-
-        center.removeAll();
-        center.add(wrapper);
-        center.layout(true);
-
-        WidgetContainer south = (WidgetContainer) Registry
-            .get("south");
-        south.removeAll();
-
-        viewer.setInput(posts);
-    }
-
     protected void initialize() {
         wrapper = new WidgetContainer();
         wrapper.setLayout(new RowLayout());
         
         filterTextBox = new ViewerFilterTextBox();
-        final ViewerFilter filter = new ViewerFilter() {
+        filter = new ViewerFilter() {
                 public boolean select(Viewer viewer, Object parent, Object element) {
                 PostModel m = (PostModel) element;
+                if (unreadOnly && m.isViewed().booleanValue()) {
+                    Debug.println("post("+m.getClId()+") failed unread only filter: " + unreadOnly + ", " +m.isViewed());
+                    return false;
+                }
                 if (minAge > MIN_AGE || maxAge < MAX_AGE) {
                     if (m.getAge() == null || m.getAge().length() == 0) {
-                        Debug.println("ZZZ post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
+                        Debug.println("post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
                         return false;
                     } 
                     try {
                         int age = Integer.valueOf(m.getAge()).intValue();
                         if (age < minAge || maxAge < age) {
-                            Debug.println("ZZZ post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
+                            Debug.println("post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
                             return false;
                         }
                     } catch (NumberFormatException nfe) {
-                        Debug.println("ZZZ post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
+                        Debug.println("post("+m.getClId()+") failed age filter: " + minAge + ", " + maxAge + ", " +m.getAge());
                         return false;
                     }
                 }
                 if (filterFlagged && m.isFlagged().booleanValue()) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed flagged filter: " + filterFlagged + ", " +m.isFlagged());
+                    Debug.println("post("+m.getClId()+") failed flagged filter: " + filterFlagged + ", " +m.isFlagged());
                     return false;
                 }
                 if (photosOnly && !m.isPic().booleanValue()) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed photosOnly filter: " + photosOnly + ", " +m.isPic());
+                    Debug.println("post("+m.getClId()+") failed photosOnly filter: " + photosOnly + ", " +m.isPic());
                     return false;
                 }
                 
                 boolean subscribed = false;
                 PostingGroup pg = getPostingGroup(m.getCity(), m.getCategory());
                 if (pg == null || !pg.isActive()) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed subscribed filter: " + postingGroups + ", " + m.getCity() + ", " + m.getCategory());
+                    Debug.println("post("+m.getClId()+") failed subscribed filter: " + postingGroups + ", " + m.getCity() + ", " + m.getCategory());
                     return false;
                 }
 
@@ -325,19 +480,19 @@ public class PostListView extends ReplyView {
                 UserModel user = getUser();
                 Iterator itr = user.getCitySubscriptionFilter().iterator();
                 while (!filtered && itr.hasNext()) {
-                    filtered = m.getCity().equals(itr.next());
+                    filtered = Utils.isEqual(m.getCity(), itr.next());
                 }
                 if (filtered) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed city filter: " + user.getCitySubscriptionFilter() + ", " + m.getCity());
+                    Debug.println("post("+m.getClId()+") failed city filter: " + user.getCitySubscriptionFilter() + ", " + m.getCity());
                     return false;
                 }
 
                 itr = user.getCategorySubscriptionFilter().iterator();
                 while (!filtered && itr.hasNext()) {
-                    filtered = m.getCategory().equals(itr.next());
+                    filtered = Utils.isEqual(m.getCategory(), itr.next());
                 }
                 if (filtered) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed category filter: " + user.getCategorySubscriptionFilter() + ", " + m.getCategory());
+                    Debug.println("post("+m.getClId()+") failed category filter: " + user.getCategorySubscriptionFilter() + ", " + m.getCategory());
                     return false;
                 }
 
@@ -354,7 +509,7 @@ public class PostListView extends ReplyView {
                     result = value.indexOf(text) >= 0;
                 }
                 if (!result) {
-                    Debug.println("ZZZ post("+m.getClId()+") failed text filter: " + text);
+                    Debug.println("post("+m.getClId()+") failed text filter: " + text);
                 }
                 return result;
             }
@@ -394,7 +549,7 @@ public class PostListView extends ReplyView {
                     target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
                     AsyncCallback callback = new AsyncCallback() {
                         public void onFailure(Throwable caught) {
-                            Debug.println(DebugUtils.getStacktraceAsString(caught));
+                            Debug.println(Utils.getStacktraceAsString(caught));
                         }
 
                         public void onSuccess(Object result) {
@@ -415,11 +570,11 @@ public class PostListView extends ReplyView {
                     PostModel p1 = (PostModel)e1;
                     PostModel p2 = (PostModel)e2;
                     int result = 0;
-                    if (p2.isViewed().booleanValue() && !p1.isViewed().booleanValue()) {
+                    /*if (p2.isViewed().booleanValue() && !p1.isViewed().booleanValue()) {
                         return -1;
                     } else if (p1.isViewed().booleanValue() && !p2.isViewed().booleanValue()) {
                         return 1;
-                    }
+                    }*/
                     if (p1.getDate() != null && p2.getDate() != null) {
                         result = p2.getDate().compareTo(p1.getDate());
                     }
@@ -444,7 +599,7 @@ public class PostListView extends ReplyView {
                     p = model.get((String)columnModelMap.get(columnId));
                 }
                 String value;
-                if (columnId.equals("res") && pm.get("reply-pending") != null && ((Boolean)pm.get("reply-pending")).booleanValue()) {
+                if (Utils.isEqual(columnId, "res") && pm.get("reply-pending") != null && ((Boolean)pm.get("reply-pending")).booleanValue()) {
                     value = "-";
                 } else if (p instanceof Boolean) {
                     value = ((Boolean)p).booleanValue() ? columnId.substring(0,1).toUpperCase() : "";
@@ -472,99 +627,20 @@ public class PostListView extends ReplyView {
         viewer.getViewerColumn(4).setLabelProvider(lp);
         viewer.getViewerColumn(5).setLabelProvider(lp);
         viewer.getViewerColumn(6).setLabelProvider(lp);
-        viewer.setContentProvider(new RemoteContentProvider() {
-
-            public void getData(LoadConfig config, DataCallback callback) {
-            }
-
-            public void getElements(Object input, final IAsyncContentCallback contentCallback) {
-                if (posts != null) {
-                    contentCallback.setElements(posts.toArray());
-                    return;
-                }
-                
-                if (activePostingGroupCount() == 0) {
-                    contentCallback.setElements(new Object[0]);
-                    return;
-                }
-                final String modalOriginator = "PostListView.PostService::getPosts";
-                goModal(modalOriginator, "Loading Posts...");
-                PostServiceAsync serviceProxy = (PostServiceAsync)GWT.create(PostService.class);
-                ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
-                target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
-                AsyncCallback callback = new AsyncCallback() {
-                    public void onFailure(Throwable caught) {
-                        clearModal(modalOriginator);
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
-                    }
-    
-                    public void onSuccess(Object result) {
-                        clearModal(modalOriginator);
-                        Debug.println("ZZZ received getPosts reply: " + result);
-                        posts = (List)result;
-                                
-                        /*
-                        if (posts == null) {
-                            posts = l;
-                        } else {
-                            while (posts.size()+l.size() > 100) {
-                                posts.remove(posts.size()-1);
-                            }
-                            List olderPosts = posts;
-                            posts = l;
-                            posts.addAll(olderPosts);
-                        }
-                        PostModel[] postModels = new PostModel[posts.size()];
-                        for (int i=0; i<posts.size(); i++) {
-                            postModels[i] = (PostModel)posts.get(i);
-                                    
-                            if (lastPostReceived < postModels[i].getClId().longValue()) {
-                                lastPostReceived = postModels[i].getClId().longValue();
-                            }
-                        }
-                        contentCallback.setElements(postModels);
-                        */
-                        Debug.println("ZZZ before entering lock");
-                        synchronized (updateLock) {
-                        Debug.println("ZZZ entered lock");
-                            PostModel[] postModels = new PostModel[posts.size()];
-                            for (int i=0; i<posts.size(); i++) {
-                                postModels[i] = (PostModel)posts.get(i);
-                                        
-                                Debug.println("ZZZ received post: " + postModels[i]);
-                                PostingGroup pg = getPostingGroup(postModels[i].getCity(), postModels[i].getCategory());
-                                if (pg.getLastFetched().longValue() < postModels[i].getClId().longValue()) {
-                                    pg.setLastFetched(postModels[i].getClId());
-                                }
-                            }
-                            contentCallback.setElements(postModels);
-                            updateRefreshButton(0);
-                        }
-                            
-                        if (timer == null) {
-                            timer = new Timer() {
-                                public void run() {
-                                    checkForUpdates();
-                                }
-                            };
-                            timer.scheduleRepeating(10000);
-                        }
-                    }
-                            
-                };
-                Debug.println("ZZZ sending getPosts request: " + postingGroups);
-                serviceProxy.getPosts(getUser().getUsername(), postingGroups, callback);
-                /*
-                if (lastPostReceived > 0) {
-                    serviceProxy.getNewPosts(userModel.getUsername(), postingGroups, callback);
-                } else {
-                    serviceProxy.getPosts(userModel.getUsername(), postingGroups, callback);
-                }
-                */
-            }
-            
-        });
+        viewer.setContentProvider(contentProvider);
         wrapper.add(table, new RowData(RowData.FILL_BOTH));
+        
+        autoFetch = Boolean.valueOf(getUser().getPreference("autoFetch")).booleanValue();
+        final ToolItem autoRefreshItem = new ToolItem(Style.TOGGLE);
+        autoRefreshItem.setSelected(autoFetch);
+        autoRefreshItem.setText("Auto");
+        autoRefreshItem.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                autoFetch = autoRefreshItem.isSelected();
+                savePreference("autoFetch", ""+autoFetch, null);
+            }
+        });
+        toolBar.add(autoRefreshItem);
         
         refreshItem = new ToolItem(Style.PUSH);
         refreshItem.setText("Refresh");
@@ -591,12 +667,13 @@ public class PostListView extends ReplyView {
                 
                 savePreferences(preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
                         minAge = MIN_AGE;
                         maxAge = MAX_AGE;
+                        unreadOnly = false;
                         filterFlagged = false;
                         photosOnly = false;
                         UserModel user = getUser();
@@ -606,9 +683,10 @@ public class PostListView extends ReplyView {
                         maxAgeSpinner.setValue(MAX_AGE);
                         filterPhotoItem.setSelected(false);
                         filterFlaggedItem.setSelected(false);
+                        unreadOnlyItem.setSelected(false);
                         clearCityFilters(false);
                         clearCategoryFilters(true); // updates the view
-                        checkForUpdates();
+                        viewer.applyFilters();
                     }
                 });
                 
@@ -690,15 +768,15 @@ public class PostListView extends ReplyView {
                 if (filterTextBox.getText() != null && filterTextBox.getText().matches("^[0-9]+$")) {
                     long clPostId = Long.valueOf(filterTextBox.getText()).longValue();
                     boolean found = false;
-                    for (int i=0; !found && posts != null && i<posts.size(); i++) {
-                        found = ((PostModel)posts.get(i)).getClId().longValue() == clPostId;
+                    for (int i=0; !found && i<postsFolder.getChildCount(); i++) {
+                        found = ((PostModel)postsFolder.getChild(i)).getClId().longValue() == clPostId;
                     }
                     if (!found) {
                         loadPost(clPostId);
                     }
                 }
                 savePreference("searchTerm", filterTextBox.getText(), null);
-                checkForUpdates();
+                viewer.applyFilters();
             }
 
         });
@@ -713,15 +791,27 @@ public class PostListView extends ReplyView {
         clearSearchButton.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 filterTextBox.setText("");
-                viewer.removeFilter(filter);
-                viewer.addFilter(filter);  
+                viewer.applyFilters();
                 savePreference("searchTerm", "", null);
-                checkForUpdates();
             }
         });
         toolBar.add(clearSearchButton);
 
         Menu filterMenu = new Menu();  
+        unreadOnlyItem = new MenuItem(Style.CHECK);  
+        unreadOnlyItem.setText("Unread");  
+        unreadOnly = Boolean.valueOf(user.getPreference("unreadOnly")).booleanValue();
+        unreadOnlyItem.setSelected(unreadOnly);
+        unreadOnlyItem.addSelectionListener(new SelectionListener() {
+            public void widgetSelected(BaseEvent be) {
+                unreadOnly = unreadOnlyItem.isSelected();
+                viewer.applyFilters();
+                savePreference("unreadOnly", ""+unreadOnly, null);
+            }
+
+        });
+        filterMenu.add(unreadOnlyItem);  
+        
         filterFlaggedItem = new MenuItem(Style.CHECK);  
         filterFlaggedItem.setText("No Flagged");  
         filterFlagged = Boolean.valueOf(user.getPreference("noFlagged")).booleanValue();
@@ -729,10 +819,8 @@ public class PostListView extends ReplyView {
         filterFlaggedItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 filterFlagged = filterFlaggedItem.isSelected();
-                viewer.removeFilter(filter);
-                viewer.addFilter(filter);
+                viewer.applyFilters();
                 savePreference("noFlagged", ""+filterFlagged, null);
-                checkForUpdates();
             }
 
         });
@@ -745,10 +833,8 @@ public class PostListView extends ReplyView {
         filterPhotoItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 photosOnly = filterPhotoItem.isSelected();
-                viewer.removeFilter(filter);
-                viewer.addFilter(filter);  
+                viewer.applyFilters();
                 savePreference("photosOnly", ""+photosOnly, null);
-                checkForUpdates();
             }
 
         });
@@ -768,7 +854,7 @@ public class PostListView extends ReplyView {
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         clearModal(modalOriginator);
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
@@ -808,10 +894,8 @@ public class PostListView extends ReplyView {
                 if (be.value != null) {
                     Integer n = (Integer)be.value;
                     minAge = n.intValue();
-                    viewer.removeFilter(filter);
-                    viewer.addFilter(filter);  
+                    viewer.applyFilters();
                     setPreference("minAge", ""+minAge);
-                    checkForUpdates();
                 }
             }
         });
@@ -822,10 +906,8 @@ public class PostListView extends ReplyView {
                 if (be.value != null) {
                     Integer n = (Integer)be.value;
                     maxAge = n.intValue();
-                    viewer.removeFilter(filter);
-                    viewer.addFilter(filter);  
+                    viewer.applyFilters();
                     setPreference("maxAge", ""+maxAge);
-                    checkForUpdates();
                 }
             }
         });
@@ -842,7 +924,7 @@ public class PostListView extends ReplyView {
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -859,7 +941,7 @@ public class PostListView extends ReplyView {
     private boolean menuContainsItem(Menu menu, String name) {
         boolean b = false;
         for (int i=0; !b && i<menu.getItemCount(); i++) {
-            b = menu.getItem(i).getText().equals(name);
+            b = Utils.isEqual(menu.getItem(i).getText(), name);
         }
         return b;
     }
@@ -875,7 +957,7 @@ public class PostListView extends ReplyView {
                 cityItem.setSelected(true);
                 cityItem.addSelectionListener(new SelectionListener() {
                     public void widgetSelected(BaseEvent be) {
-                        viewer.setInput(posts);
+                        viewer.setInput(postsFolder);
                     }
         
                 });
@@ -889,7 +971,7 @@ public class PostListView extends ReplyView {
             subscribedCities.remove(city);
             for (int i=0; i<cityMenu.getItemCount(); i++) {
                 MenuItem item = cityMenu.getItem(i);
-                if (item.getText().equals(city.getName())) {
+                if (Utils.isEqual(item.getText(), city.getName())) {
                     cityMenu.remove(item);
                     break;
                 }
@@ -910,7 +992,7 @@ public class PostListView extends ReplyView {
                 categoryItem.setSelected(true);
                 categoryItem.addSelectionListener(new SelectionListener() {
                     public void widgetSelected(BaseEvent be) {
-                        viewer.setInput(posts);
+                        viewer.setInput(postsFolder);
                     }
         
                 });
@@ -923,7 +1005,7 @@ public class PostListView extends ReplyView {
             subscribedCategories.remove(category);
             for (int i=0; i<categoryMenu.getItemCount(); i++) {
                 MenuItem item = categoryMenu.getItem(i);
-                if (item.getText().equals(category.getName())) {
+                if (Utils.isEqual(item.getText(), category.getName())) {
                     categoryMenu.remove(item);
                     break;
                 }
@@ -939,12 +1021,12 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
                 getUser().getCitySubscriptionFilter().add(city.getName());
-                viewer.setInput(posts);
+                viewer.applyFilters();
             }
         };
         serviceProxy.addCityFilter(getUser().getUsername(), city.getName(), callback);
@@ -956,7 +1038,7 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -966,7 +1048,7 @@ public class PostListView extends ReplyView {
                     item.setSelected(true);
                 }
                 if (update) {
-                    viewer.setInput(posts);
+                    viewer.applyFilters();
                 }
             }
         };
@@ -979,12 +1061,12 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
                 getUser().getCitySubscriptionFilter().remove(city.getName());
-                viewer.setInput(posts);
+                viewer.applyFilters();
             }
         };
         serviceProxy.removeCityFilter(getUser().getUsername(), city.getName(), callback);
@@ -996,12 +1078,12 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
                 getUser().getCategorySubscriptionFilter().add(category.getName());
-                viewer.setInput(posts);
+                viewer.applyFilters();
             }
         };
         serviceProxy.addCategoryFilter(getUser().getUsername(), category.getName(), callback);
@@ -1013,7 +1095,7 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
@@ -1023,7 +1105,7 @@ public class PostListView extends ReplyView {
                     item.setSelected(true);
                 }
                 if (update) {
-                    viewer.setInput(posts);
+                    viewer.applyFilters();
                 }
             }
         };
@@ -1036,12 +1118,12 @@ public class PostListView extends ReplyView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
                 getUser().getCategorySubscriptionFilter().remove(category.getName());
-                viewer.setInput(posts);
+                viewer.applyFilters();
             }
         };
         serviceProxy.removeCategoryFilter(getUser().getUsername(), category.getName(), callback);
@@ -1065,7 +1147,7 @@ public class PostListView extends ReplyView {
         serviceProxy.getSubscribedCities(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
@@ -1086,7 +1168,7 @@ public class PostListView extends ReplyView {
                                 } else {
                                     removeCityFilter(city);
                                 }
-                                checkForUpdates();
+                                viewer.applyFilters();
                             }
     
                         });
@@ -1109,7 +1191,7 @@ public class PostListView extends ReplyView {
         serviceProxy.getSubscribedCategories(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
@@ -1130,7 +1212,7 @@ public class PostListView extends ReplyView {
                                 } else {
                                     removeCategoryFilter(category);
                                 }
-                                checkForUpdates();
+                                viewer.applyFilters();
                             }
     
                         });

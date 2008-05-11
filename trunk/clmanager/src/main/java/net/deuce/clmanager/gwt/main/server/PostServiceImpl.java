@@ -39,7 +39,6 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
     public PostServiceImpl() {
     }
     
-    
     public String processCall(String payload) throws SerializationException {
         try {
         return super.processCall(payload);
@@ -218,7 +217,9 @@ public class PostServiceImpl extends BaseServiceImpl implements PostService {
             PostActivities pa = activityMap.get(p);
             if (!p.isFlagged() || (pa != null && pa.isViewed())) {
                 PostModel model = buildPostModel(p, pa);
-                if (postFilter == null || (postFilter.getSearchTerm().trim().length() == 0 || postContainsSearchTerm(model, postFilter.getSearchTerm().trim()))) {
+                if (postFilter == null || 
+                    ((postFilter.getSearchTerm().trim().length() == 0 || postContainsSearchTerm(model, postFilter.getSearchTerm().trim())) &&
+                        (!postFilter.getUnreadOnly() || pa.isViewed()))) {
                     result.add(model);
                 }
             }

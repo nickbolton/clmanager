@@ -8,7 +8,7 @@ import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
 import net.deuce.clmanager.gwt.main.client.model.CityModel;
 import net.deuce.clmanager.gwt.main.client.model.Folder;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.Style;
 import net.mygwt.ui.client.event.BaseEvent;
@@ -102,7 +102,7 @@ public class CityView extends BaseView {
                         serviceProxy.subscribe(userModel.getUsername(), ((CityModel) element).getName(),
                             state, new AsyncCallback() {
                                 public void onFailure(Throwable caught) {
-                                    Debug.println(DebugUtils
+                                    Debug.println(Utils
                                         .getStacktraceAsString(caught));
                                 }
 
@@ -163,6 +163,11 @@ public class CityView extends BaseView {
         
         folders.addFilter(filter);
         
+        loadCities();
+        
+    }
+    
+    private void loadCities() {
         CityServiceAsync serviceProxy = (CityServiceAsync)GWT.create(CityService.class);
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CityService");
@@ -171,7 +176,7 @@ public class CityView extends BaseView {
         serviceProxy.getCities(getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
                 clearModal(modalOriginator);
-                Debug.println(DebugUtils.getStacktraceAsString(caught));
+                Debug.println(Utils.getStacktraceAsString(caught));
             } 
                  
             public void onSuccess (Object result) { 
@@ -184,7 +189,6 @@ public class CityView extends BaseView {
                 folders.setInput(root);
             } 
         });
-        
     }
 
     protected void handleEvent(AppEvent event) {
@@ -205,6 +209,8 @@ public class CityView extends BaseView {
                     }
                 });
                 panel.getHeader().addWidget(clearSearchButton);
+            } else if (root.getChildCount() == 0) {
+                loadCities();
             }
         }
     }

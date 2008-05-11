@@ -6,7 +6,7 @@ import java.util.Map;
 import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
-import net.deuce.clmanager.gwt.main.client.util.DebugUtils;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 import net.deuce.clmanager.gwt.main.client.widget.NumberTextBox;
 import net.mygwt.ui.client.Events;
 import net.mygwt.ui.client.Registry;
@@ -132,7 +132,7 @@ public class ViewEmailSettingsView extends BaseView {
                 serviceProxy.setPreferences(user.getUsername(), preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         clearModal(modalOriginator);
-                        Debug.println(DebugUtils.getStacktraceAsString(caught));
+                        Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {

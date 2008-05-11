@@ -14,6 +14,7 @@ import net.deuce.clmanager.domain.Preference;
 import net.deuce.clmanager.domain.UserPreferences;
 import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
+import net.deuce.clmanager.gwt.main.client.util.Utils;
 
 public class UserServiceImpl extends BaseServiceImpl implements UserService {
 
@@ -273,7 +274,7 @@ public class UserServiceImpl extends BaseServiceImpl implements UserService {
         Preference p = userPreferences.getPreference(name);
         boolean update = false;
         if (p != null) {
-            if (!p.getValue().equals(value)) {
+            if (!net.deuce.clmanager.util.Utils.isEqual(p.getValue(), value)) {
                 p.setValue(value);
                 getPreferenceDao().update(p);
             }

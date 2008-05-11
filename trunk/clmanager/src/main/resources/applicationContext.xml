@@ -24,7 +24,7 @@
         <property name="user"><value>deuce</value></property>
         <property name="password"><value>deuce</value></property>
         <property name="simpleSql"><value>select 1</value></property>
-        <property name="size"><value>10</value></property>
+        <property name="size"><value>3</value></property>
         <property name="logLevel"><value>5</value></property>
         <property name="logMicroTimes"><value>false</value></property>
         <property name="traceCallers"><value>0</value></property>
