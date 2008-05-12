@@ -358,7 +358,7 @@ public class PostListView extends ReplyView {
                 mainPanel.add(wrapper);
                 mainPanel.layout(true);
             }
-            refresh();
+            refresh(false);
             break;
         case AppEvents.PostReplyFailed:
             postReplyFailed((Long)event.data);
@@ -393,7 +393,7 @@ public class PostListView extends ReplyView {
     
     private void checkForUpdates() {
         if (autoFetch) {
-            refresh();
+            refresh(false);
         } else {
             if (activePostingGroupCount() > 0) {
                 PostServiceAsync serviceProxy = (PostServiceAsync)GWT.create(PostService.class);
@@ -419,8 +419,8 @@ public class PostListView extends ReplyView {
         }
     }
     
-    private void refresh() {
-        if (!autoFetch || postsFolder.getChildCount() == 0) {
+    private void refresh(boolean force) {
+        if (force || !autoFetch || postsFolder.getChildCount() == 0) {
             Iterator itr = postingGroups.iterator();
             while (itr.hasNext()) {
                 ((PostingGroup)itr.next()).setLastFetched(new Long(0L));
@@ -646,7 +646,7 @@ public class PostListView extends ReplyView {
         refreshItem.setText("Refresh");
         refreshItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
-                refresh();
+                refresh(true);
             }
         });
         toolBar.add(refreshItem);
@@ -1176,7 +1176,7 @@ public class PostListView extends ReplyView {
                     }
                 }
                 if (activePostingGroupCount() > 0) {
-                    refresh();
+                    refresh(false);
                 }
             }   
         });
@@ -1220,7 +1220,7 @@ public class PostListView extends ReplyView {
                     }
                 }
                 if (activePostingGroupCount() > 0) {
-                    refresh();
+                    refresh(false);
                 }
                 Registry.register("categories", l);
             }   
