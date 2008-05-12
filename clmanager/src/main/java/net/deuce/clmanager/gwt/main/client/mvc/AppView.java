@@ -162,6 +162,7 @@ public class AppView extends BaseView {
       toolbar.add(emailSettingsItem);
       
       ToolItem messageTemplatesItem = new ToolItem(Style.PUSH);
+      messageTemplatesItem.disable();
       messageTemplatesItem.setText("Message Templates");
       messageTemplatesItem.addSelectionListener(new SelectionListener() {
         public void widgetSelected(BaseEvent be) {
