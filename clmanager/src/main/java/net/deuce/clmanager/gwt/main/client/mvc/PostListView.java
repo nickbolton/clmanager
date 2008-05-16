@@ -220,7 +220,7 @@ public class PostListView extends ReplyView {
                     
         };
         Debug.println("sending getPosts request: " + postingGroups);
-        serviceProxy.getNewPosts(getUser().getUsername(), postingGroups, null,callback);
+        serviceProxy.getNewPosts(Utils.getUser().getUsername(), postingGroups, null,callback);
     }
     
     private void reloadTimer(boolean fireAlways) {
@@ -255,7 +255,7 @@ public class PostListView extends ReplyView {
                     
         };
         Debug.println("sending getPosts request: " + postingGroups);
-        serviceProxy.getPosts(getUser().getUsername(), postingGroups, callback);
+        serviceProxy.getPosts(Utils.getUser().getUsername(), postingGroups, callback);
     }
     
     private void setPostingGroupActive(String city, String category) {
@@ -411,10 +411,10 @@ public class PostListView extends ReplyView {
                     }
                         
                 };
-                UserModel user = getUser();
+                UserModel user = Utils.getUser();
                 PostFilter postFilter = new PostFilter(minAge, maxAge, unreadOnly,
                     filterFlagged, photosOnly, filterTextBox.getText());
-                serviceProxy.getNewPostCount(getUser().getUsername(), postingGroups, postFilter, callback);
+                serviceProxy.getNewPostCount(Utils.getUser().getUsername(), postingGroups, postFilter, callback);
             }
         }
     }
@@ -477,7 +477,7 @@ public class PostListView extends ReplyView {
                 }
 
                 boolean filtered = false;
-                UserModel user = getUser();
+                UserModel user = Utils.getUser();
                 Iterator itr = user.getCitySubscriptionFilter().iterator();
                 while (!filtered && itr.hasNext()) {
                     filtered = Utils.isEqual(m.getCity(), itr.next());
@@ -557,7 +557,7 @@ public class PostListView extends ReplyView {
                         }
                         
                     };
-                    serviceProxy.setViewed(getUser().getUsername(), post.getId(), callback);
+                    serviceProxy.setViewed(Utils.getUser().getUsername(), post.getId(), callback);
 
                 }
             }
@@ -630,14 +630,14 @@ public class PostListView extends ReplyView {
         viewer.setContentProvider(contentProvider);
         wrapper.add(table, new RowData(RowData.FILL_BOTH));
         
-        autoFetch = Boolean.valueOf(getUser().getPreference("autoFetch")).booleanValue();
+        autoFetch = Boolean.valueOf(Utils.getUser().getPreference("autoFetch")).booleanValue();
         final ToolItem autoRefreshItem = new ToolItem(Style.TOGGLE);
         autoRefreshItem.setSelected(autoFetch);
         autoRefreshItem.setText("Auto");
         autoRefreshItem.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
                 autoFetch = autoRefreshItem.isSelected();
-                savePreference("autoFetch", ""+autoFetch, null);
+                Utils.savePreference("autoFetch", ""+autoFetch, null);
             }
         });
         toolBar.add(autoRefreshItem);
@@ -665,7 +665,7 @@ public class PostListView extends ReplyView {
                 preferences.put("photosOnly", "false");
                 preferences.put("searchTerm", "");
                 
-                savePreferences(preferences, new AsyncCallback() {
+                Utils.savePreferences(preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
                         Debug.println(Utils.getStacktraceAsString(caught));
                     }
@@ -676,7 +676,7 @@ public class PostListView extends ReplyView {
                         unreadOnly = false;
                         filterFlagged = false;
                         photosOnly = false;
-                        UserModel user = getUser();
+                        UserModel user = Utils.getUser();
                         user.addAll(preferences);
                         filterTextBox.setText("");
                         minAgeSpinner.setValue(MIN_AGE);
@@ -760,7 +760,7 @@ public class PostListView extends ReplyView {
         
         toolBar.add(categoryMenuItem);
         
-        UserModel user = getUser();
+        UserModel user = Utils.getUser();
         filterTextBox.setText(user.getPreference("searchTerm"));
         filterTextBox.bind(viewer);
         filterTextBox.addChangeListener(new ChangeListener() {
@@ -775,7 +775,7 @@ public class PostListView extends ReplyView {
                         loadPost(clPostId);
                     }
                 }
-                savePreference("searchTerm", filterTextBox.getText(), null);
+                Utils.savePreference("searchTerm", filterTextBox.getText(), null);
                 viewer.applyFilters();
             }
 
@@ -792,7 +792,7 @@ public class PostListView extends ReplyView {
             public void widgetSelected(BaseEvent be) {
                 filterTextBox.setText("");
                 viewer.applyFilters();
-                savePreference("searchTerm", "", null);
+                Utils.savePreference("searchTerm", "", null);
             }
         });
         toolBar.add(clearSearchButton);
@@ -806,7 +806,7 @@ public class PostListView extends ReplyView {
             public void widgetSelected(BaseEvent be) {
                 unreadOnly = unreadOnlyItem.isSelected();
                 viewer.applyFilters();
-                savePreference("unreadOnly", ""+unreadOnly, null);
+                Utils.savePreference("unreadOnly", ""+unreadOnly, null);
             }
 
         });
@@ -820,7 +820,7 @@ public class PostListView extends ReplyView {
             public void widgetSelected(BaseEvent be) {
                 filterFlagged = filterFlaggedItem.isSelected();
                 viewer.applyFilters();
-                savePreference("noFlagged", ""+filterFlagged, null);
+                Utils.savePreference("noFlagged", ""+filterFlagged, null);
             }
 
         });
@@ -834,7 +834,7 @@ public class PostListView extends ReplyView {
             public void widgetSelected(BaseEvent be) {
                 photosOnly = filterPhotoItem.isSelected();
                 viewer.applyFilters();
-                savePreference("photosOnly", ""+photosOnly, null);
+                Utils.savePreference("photosOnly", ""+photosOnly, null);
             }
 
         });
@@ -850,15 +850,15 @@ public class PostListView extends ReplyView {
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
                 final String modalOriginator = "PostListView.PostService::setAllViewed";
-                goModal(modalOriginator, "Marking all as viewed...");
+                Utils.goModal(modalOriginator, "Marking all as viewed...");
                 AsyncCallback callback = new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        clearModal(modalOriginator);
+                        Utils.clearModal(modalOriginator);
                         Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
-                        clearModal(modalOriginator);
+                        Utils.clearModal(modalOriginator);
                         PostModel[] posts = (PostModel[])viewer.getElements();
                         for (int i=0; posts != null && i<posts.length; i++) {
                             posts[i].setViewed(Boolean.TRUE);
@@ -867,7 +867,7 @@ public class PostListView extends ReplyView {
                     }
                     
                 };
-                serviceProxy.setAllViewed(getUser().getUsername(), postingGroups, callback);
+                serviceProxy.setAllViewed(Utils.getUser().getUsername(), postingGroups, callback);
 
             }
         });
@@ -920,22 +920,22 @@ public class PostListView extends ReplyView {
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "PostService");
         final String modalOriginator = "PostListView.PostService::getPostByClId";
-        goModal(modalOriginator, "Loading post "+clPostId+"...");
+        Utils.goModal(modalOriginator, "Loading post "+clPostId+"...");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             }
 
             public void onSuccess(Object result) {
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 if (result != null) {
                     showPost((PostModel)result);
                 }
             }
             
         };
-        serviceProxy.getPostByClId(getUser().getUsername(), clPostId, callback);
+        serviceProxy.getPostByClId(Utils.getUser().getUsername(), clPostId, callback);
     }
     
     private boolean menuContainsItem(Menu menu, String name) {
@@ -963,7 +963,7 @@ public class PostListView extends ReplyView {
                 });
                 cityMenu.add(cityItem);  
             }
-            getUser().getCitySubscriptionFilter().add(city.getName());
+            Utils.getUser().getCitySubscriptionFilter().add(city.getName());
             enablePostingGroups(city, null, true);
             removeCityFilter(city);
             
@@ -998,7 +998,7 @@ public class PostListView extends ReplyView {
                 });
                 categoryMenu.add(categoryItem);  
             }
-            getUser().getCategorySubscriptionFilter().add(category.getName());
+            Utils.getUser().getCategorySubscriptionFilter().add(category.getName());
             enablePostingGroups(null, category, true);
             removeCategoryFilter(category);
         } else {
@@ -1025,11 +1025,11 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCitySubscriptionFilter().add(city.getName());
+                Utils.getUser().getCitySubscriptionFilter().add(city.getName());
                 viewer.applyFilters();
             }
         };
-        serviceProxy.addCityFilter(getUser().getUsername(), city.getName(), callback);
+        serviceProxy.addCityFilter(Utils.getUser().getUsername(), city.getName(), callback);
     }
     
     private void clearCityFilters(final boolean update) {
@@ -1042,7 +1042,7 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCitySubscriptionFilter().clear();
+                Utils.getUser().getCitySubscriptionFilter().clear();
                 for (int i=0; i<cityMenu.getItemCount(); i++) {
                     MenuItem item = cityMenu.getItem(i);
                     item.setSelected(true);
@@ -1052,7 +1052,7 @@ public class PostListView extends ReplyView {
                 }
             }
         };
-        serviceProxy.clearCityFilters(getUser().getUsername(), callback);
+        serviceProxy.clearCityFilters(Utils.getUser().getUsername(), callback);
     }
     
     private void removeCityFilter(final CityModel city) {
@@ -1065,11 +1065,11 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCitySubscriptionFilter().remove(city.getName());
+                Utils.getUser().getCitySubscriptionFilter().remove(city.getName());
                 viewer.applyFilters();
             }
         };
-        serviceProxy.removeCityFilter(getUser().getUsername(), city.getName(), callback);
+        serviceProxy.removeCityFilter(Utils.getUser().getUsername(), city.getName(), callback);
     }
     
     private void addCategoryFilter(final CategoryModel category) {
@@ -1082,11 +1082,11 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCategorySubscriptionFilter().add(category.getName());
+                Utils.getUser().getCategorySubscriptionFilter().add(category.getName());
                 viewer.applyFilters();
             }
         };
-        serviceProxy.addCategoryFilter(getUser().getUsername(), category.getName(), callback);
+        serviceProxy.addCategoryFilter(Utils.getUser().getUsername(), category.getName(), callback);
     }
     
     private void clearCategoryFilters(final boolean update) {
@@ -1099,7 +1099,7 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCategorySubscriptionFilter().clear();
+                Utils.getUser().getCategorySubscriptionFilter().clear();
                 for (int i=0; i<categoryMenu.getItemCount(); i++) {
                     MenuItem item = categoryMenu.getItem(i);
                     item.setSelected(true);
@@ -1109,7 +1109,7 @@ public class PostListView extends ReplyView {
                 }
             }
         };
-        serviceProxy.clearCategoryFilters(getUser().getUsername(), callback);
+        serviceProxy.clearCategoryFilters(Utils.getUser().getUsername(), callback);
     }
     
     private void removeCategoryFilter(final CategoryModel category) {
@@ -1122,11 +1122,11 @@ public class PostListView extends ReplyView {
             }
 
             public void onSuccess(Object result) {
-                getUser().getCategorySubscriptionFilter().remove(category.getName());
+                Utils.getUser().getCategorySubscriptionFilter().remove(category.getName());
                 viewer.applyFilters();
             }
         };
-        serviceProxy.removeCategoryFilter(getUser().getUsername(), category.getName(), callback);
+        serviceProxy.removeCategoryFilter(Utils.getUser().getUsername(), category.getName(), callback);
     }
     
     private int activePostingGroupCount() {
@@ -1143,15 +1143,15 @@ public class PostListView extends ReplyView {
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CityService");
         final String modalOriginator = "PostListView.CityService::getSubscribedCities";
-        goModal(modalOriginator, "Loading Categories...");
-        serviceProxy.getSubscribedCities(getUser().getUsername(), new AsyncCallback() {
+        Utils.goModal(modalOriginator, "Loading Categories...");
+        serviceProxy.getSubscribedCities(Utils.getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 List l = (List)result;
                 for (int i=0; i<l.size(); i++) {
                     final CityModel city = (CityModel)l.get(i);
@@ -1160,7 +1160,7 @@ public class PostListView extends ReplyView {
                     if (!menuContainsItem(cityMenu, city.getName())) {
                         final MenuItem cityItem = new MenuItem(Style.CHECK);  
                         cityItem.setText(city.getName());
-                        cityItem.setSelected(!getUser().getCitySubscriptionFilter().contains(city.getName()));
+                        cityItem.setSelected(!Utils.getUser().getCitySubscriptionFilter().contains(city.getName()));
                         cityItem.addSelectionListener(new SelectionListener() {
                             public void widgetSelected(BaseEvent be) {
                                 if (!cityItem.isSelected()) {
@@ -1187,15 +1187,15 @@ public class PostListView extends ReplyView {
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CategoryService");
         final String modalOriginator = "PostListView.CategoryService::getSubscribedCategories";
-        goModal(modalOriginator, "Loading Categories...");
-        serviceProxy.getSubscribedCategories(getUser().getUsername(), new AsyncCallback() {
+        Utils.goModal(modalOriginator, "Loading Categories...");
+        serviceProxy.getSubscribedCategories(Utils.getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 List l = (List)result;
                 for (int i=0; i<l.size(); i++) {
                     final CategoryModel category = (CategoryModel)l.get(i);
@@ -1204,7 +1204,7 @@ public class PostListView extends ReplyView {
                     if (!menuContainsItem(categoryMenu, category.getName())) {
                         final MenuItem categoryItem = new MenuItem(Style.CHECK);  
                         categoryItem.setText(category.getName());
-                        categoryItem.setSelected(!getUser().getCategorySubscriptionFilter().contains(category.getName()));
+                        categoryItem.setSelected(!Utils.getUser().getCategorySubscriptionFilter().contains(category.getName()));
                         categoryItem.addSelectionListener(new SelectionListener() {
                             public void widgetSelected(BaseEvent be) {
                                 if (!categoryItem.isSelected()) {

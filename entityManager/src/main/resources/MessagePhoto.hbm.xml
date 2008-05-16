@@ -6,7 +6,10 @@
   <id type="long" column="MESSAGE_PHOTO_ID" name="id">
    <generator class="native"/>
   </id>
-  <property column="PATH" generated="never" lazy="false" name="path" type="string"/>
+  <property column="SERVICE" generated="never" lazy="false" name="service" type="string"/>
+  <property column="EXTERNAL_ID" generated="never" lazy="false" name="externalId" type="string"/>
+  <property column="URL" generated="never" lazy="false" name="url" type="string"/>
+  <many-to-one name="messageTemplate" column="MESSAGE_TEMPLATE_ID" class="net.deuce.clmanager.domain.MessageTemplate"/>
  </class>
  <query name="MessagePhoto.findAll">
   <![CDATA[select mp from net.deuce.clmanager.domain.MessagePhoto mp]]>

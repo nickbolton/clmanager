@@ -14,6 +14,7 @@ import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.viewer.CheckStateChangedEvent;
 import net.mygwt.ui.client.viewer.ICheckStateListener;
 import net.mygwt.ui.client.viewer.ISelectionChangedListener;
@@ -35,7 +36,7 @@ import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.Widget;
 
-public class CategoryView extends BaseView {
+public class CategoryView extends View {
 
     private Tree tree;
     TreeViewerFilterTextBox filterTextBox;
@@ -138,10 +139,10 @@ public class CategoryView extends BaseView {
         
         filterTextBox = new TreeViewerFilterTextBox();
         filterTextBox.bind(folders);
-        filterTextBox.setText(getUser().getPreference("categorySearchTerm"));
+        filterTextBox.setText(Utils.getUser().getPreference("categorySearchTerm"));
         filterTextBox.addChangeListener(new ChangeListener() {
             public void onChange(Widget sender) {
-                savePreference("categorySearchTerm", filterTextBox.getText(), null);
+                Utils.savePreference("categorySearchTerm", filterTextBox.getText(), null);
             }
 
         });
@@ -176,15 +177,15 @@ public class CategoryView extends BaseView {
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CategoryService");
         final String modalOriginator = "CategoryContentProvider.CategoryService::getCategories";
-        goModal(modalOriginator, "Loading Categories...");
-        serviceProxy.getCategories(getUser().getUsername(), new AsyncCallback() {
+        Utils.goModal(modalOriginator, "Loading Categories...");
+        serviceProxy.getCategories(Utils.getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 List l = (List)result;
                 for (int i=0; i<l.size(); i++) {
                     CategoryModel model = (CategoryModel)l.get(i);
@@ -209,7 +210,7 @@ public class CategoryView extends BaseView {
                     public void widgetSelected(BaseEvent be) {
                         filterTextBox.setText("");
                         folders.refresh();
-                        savePreference("categorySearchTerm", "", null);
+                        Utils.savePreference("categorySearchTerm", "", null);
                     }
                 });
                 panel.getHeader().addWidget(clearSearchButton);

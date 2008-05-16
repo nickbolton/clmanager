@@ -7,11 +7,10 @@ import java.util.Set;
 
 import net.deuce.clmanager.domain.Category;
 import net.deuce.clmanager.domain.MessagePhoto;
-import net.deuce.clmanager.domain.MessagePhotoAssociation;
 import net.deuce.clmanager.domain.MessageTemplate;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateService;
-import net.deuce.clmanager.gwt.main.client.model.ImageModel;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
+import net.deuce.clmanager.gwt.main.client.model.PhotoWrapper;
 
 public class MessageTemplateServiceImpl extends BaseServiceImpl implements MessageTemplateService {
     
@@ -26,8 +25,8 @@ public class MessageTemplateServiceImpl extends BaseServiceImpl implements Messa
                 Category c = mt.getDefaultCategory();
                 MessageTemplateModel model = new MessageTemplateModel(mt.getId(), mt.getName(), mt.getMessage(), c != null ? c.getName() : null);
                 List photos = new ArrayList();
-                for (MessagePhotoAssociation mp : (Set<MessagePhotoAssociation>)mt.getPhotos()) {
-                    photos.add(new ImageModel(mp.getId(), "", mp.getMessagePhoto().getPath()));
+                for (MessagePhoto mp : (Set<MessagePhoto>)mt.getPhotos()) {
+                    photos.add(new PhotoWrapper(mp.getId(), mp.getService(), mp.getExternalId(), mp.getUrl()));
                 }
                 model.setChildren(photos);
                 result.add(model);
@@ -66,13 +65,14 @@ public class MessageTemplateServiceImpl extends BaseServiceImpl implements Messa
             mt.setMessage(mtm.getMessage());
             
             Set photos = new HashSet();
-            for (ImageModel im : (List<ImageModel>)mtm.getChildren()) {
-                MessagePhoto mp = getMessagePhotoDao().read(im.getId());
-                MessagePhotoAssociation mpa = new MessagePhotoAssociation();
-                mpa.setMessagePhoto(mp);
-                mpa.setMessageTemplate(mt);
-                getMessagePhotoAssociationDao().create(mpa);
-                photos.add(mpa);
+            for (PhotoWrapper pw : (List<PhotoWrapper>)mtm.getChildren()) {
+                MessagePhoto mp = new MessagePhoto();
+                mp.setService(pw.getService());
+                mp.setExternalId(pw.getExternalId());
+                mp.setUrl(pw.getUrl());
+                mp.setMessageTemplate(mt);
+                getMessagePhotoDao().create(mp);
+                photos.add(mp);
             }
             if (photos.size() > 0) {
                 mt.setPhotos(photos);
@@ -106,16 +106,17 @@ public class MessageTemplateServiceImpl extends BaseServiceImpl implements Messa
                 mt.setDefaultCategory(null);
             }
             Set photos = new HashSet();
-            for (MessagePhotoAssociation mpa : (Set<MessagePhotoAssociation>)mt.getPhotos()) {
-                mpa.getId();
-                getMessagePhotoAssociationDao().delete(mpa);
+            for (MessagePhoto mp : (Set<MessagePhoto>)mt.getPhotos()) {
+                mp.getId();
+                getMessagePhotoDao().delete(mp);
             }
-            for (ImageModel im : (List<ImageModel>)mtm.getChildren()) {
-                MessagePhoto mp = getMessagePhotoDao().read(im.getId());
-                MessagePhotoAssociation mpa = new MessagePhotoAssociation();
-                mpa.setMessagePhoto(mp);
-                mpa.setMessageTemplate(mt);
-                getMessagePhotoAssociationDao().create(mpa);
+            for (PhotoWrapper pw : (List<PhotoWrapper>)mtm.getChildren()) {
+                MessagePhoto mp = new MessagePhoto();
+                mp.setService(pw.getService());
+                mp.setExternalId(pw.getExternalId());
+                mp.setUrl(pw.getUrl());
+                mp.setMessageTemplate(mt);
+                getMessagePhotoDao().create(mp);
                 photos.add(mp);
             }
             if (photos.size() > 0) {

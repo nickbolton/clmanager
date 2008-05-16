@@ -12,14 +12,25 @@ import com.google.gwt.user.client.rpc.ServiceDefTarget;
 public interface PostService extends RemoteService {
     
     /**
+     * @gwt.typeArgs postingGroups <net.deuce.clmanager.gwt.main.client.model.PostingGroup>
      * @gwt.typeArgs <net.deuce.clmanager.gwt.main.client.model.PostModel>
      */
     public List getPosts(String username, List postingGroups) throws Exception;
     public void flagPost(Long id) throws Exception;
     public void setViewed(String username, Long id) throws Exception;
     public void setReplied(String username, Long id) throws Exception;
+    /**
+     * @gwt.typeArgs postingGroups <net.deuce.clmanager.gwt.main.client.model.PostingGroup>
+     */
     public void setAllViewed(String username, List postingGroups) throws Exception;
+    /**
+     * @gwt.typeArgs postingGroups <net.deuce.clmanager.gwt.main.client.model.PostingGroup>
+     * @gwt.typeArgs <net.deuce.clmanager.gwt.main.client.model.PostModel>
+     */
     public List getNewPosts(String username, List postingGroups, PostFilter postFilter) throws Exception;
+    /**
+     * @gwt.typeArgs postingGroups <net.deuce.clmanager.gwt.main.client.model.PostingGroup>
+     */
     public Integer getNewPostCount(String username, List postingGroups, PostFilter postFilter) throws Exception;
     public PostModel getPost(String username, Long id) throws Exception;
     public PostModel getPostByClId(String username, long id) throws Exception;

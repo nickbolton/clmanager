@@ -15,6 +15,7 @@ import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.viewer.CheckStateChangedEvent;
 import net.mygwt.ui.client.viewer.ICheckStateListener;
 import net.mygwt.ui.client.viewer.ISelectionChangedListener;
@@ -36,7 +37,7 @@ import com.google.gwt.user.client.rpc.ServiceDefTarget;
 import com.google.gwt.user.client.ui.ChangeListener;
 import com.google.gwt.user.client.ui.Widget;
 
-public class CityView extends BaseView {
+public class CityView extends View {
 
     private Tree tree;
 
@@ -134,10 +135,10 @@ public class CityView extends BaseView {
         
         filterTextBox = new TreeViewerFilterTextBox();
         filterTextBox.bind(folders);
-        filterTextBox.setText(getUser().getPreference("citySearchTerm"));
+        filterTextBox.setText(Utils.getUser().getPreference("citySearchTerm"));
         filterTextBox.addChangeListener(new ChangeListener() {
             public void onChange(Widget sender) {
-                savePreference("citySearchTerm", filterTextBox.getText(), null);
+                Utils.savePreference("citySearchTerm", filterTextBox.getText(), null);
             }
 
         });
@@ -172,15 +173,15 @@ public class CityView extends BaseView {
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "CityService");
         final String modalOriginator = "CityContentProvider.CityService::getCities";
-        goModal(modalOriginator, "Loading Cities...");
-        serviceProxy.getCities(getUser().getUsername(), new AsyncCallback() {
+        Utils.goModal(modalOriginator, "Loading Cities...");
+        serviceProxy.getCities(Utils.getUser().getUsername(), new AsyncCallback() {
             public void onFailure (Throwable caught) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             } 
                  
             public void onSuccess (Object result) { 
-                clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 List l = (List)result;
                 for (int i=0; i<l.size(); i++) {
                     CityModel model = (CityModel)l.get(i);
@@ -205,7 +206,7 @@ public class CityView extends BaseView {
                     public void widgetSelected(BaseEvent be) {
                         filterTextBox.setText("");
                         folders.refresh();
-                        savePreference("citySearchTerm", "", null);
+                        Utils.savePreference("citySearchTerm", "", null);
                     }
                 });
                 panel.getHeader().addWidget(clearSearchButton);

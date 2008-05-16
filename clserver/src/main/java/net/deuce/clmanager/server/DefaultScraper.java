@@ -182,10 +182,11 @@ public class DefaultScraper implements Scraper {
     }
     
     public void scrapePost(Post post, Category category) throws Exception {
+        String postUrl = post.buildUrl();
         if (log.isDebugEnabled()) {
-            log.debug("scraping post: " + post.buildUrl());
+            log.debug("scraping post: " + postUrl);
         }
-        Document doc = Utils.getResponse(post.buildUrl());
+        Document doc = Utils.getResponse(postUrl);
         
         StringWriter sw = new StringWriter();
         OutputFormat format = OutputFormat.createPrettyPrint();
@@ -211,6 +212,11 @@ public class DefaultScraper implements Scraper {
             }
             
             int pos1 = html.indexOf("Date:");
+            if (pos1 < 0) {
+                log.error("No Date found in post: " + postUrl);
+                post.setClId(-1L);
+                return;
+            }
             pos1 = pos1+html.substring(pos1).indexOf("<br");
             int pos2 = pos1+html.substring(pos1).indexOf("<table");
             String content = html.substring(pos1, pos2);

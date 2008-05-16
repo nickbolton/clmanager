@@ -1,24 +1,25 @@
 package net.deuce.clmanager.gwt.main.client.mvc;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.deuce.clmanager.gwt.main.client.CategoryService;
 import net.deuce.clmanager.gwt.main.client.CategoryServiceAsync;
-import net.deuce.clmanager.gwt.main.client.MessagePhotoService;
-import net.deuce.clmanager.gwt.main.client.MessagePhotoServiceAsync;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateService;
 import net.deuce.clmanager.gwt.main.client.MessageTemplateServiceAsync;
 import net.deuce.clmanager.gwt.main.client.model.CategoryModel;
-import net.deuce.clmanager.gwt.main.client.model.ImageModel;
+import net.deuce.clmanager.gwt.main.client.model.ExternalPhoto;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
+import net.deuce.clmanager.gwt.main.client.model.PhotoWrapper;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.Utils;
-import net.deuce.clmanager.gwt.main.client.widget.SelectableImage;
+import net.deuce.clmanager.gwt.main.client.widget.SelectableImages;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.LoadingPanel;
@@ -34,15 +35,14 @@ import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
-public class ViewMessageTemplateView extends BaseView {
+public class ViewMessageTemplateView extends View {
 
     private DockPanel page;
-    private VerticalPanel photos;
+    private SelectableImages photos;
     private TextBox nameField;
     private TextArea messageField;
     private ListBox categories;
@@ -54,46 +54,38 @@ public class ViewMessageTemplateView extends BaseView {
     }
     
     private void clearPhotoSelections() {
-        for (int i=0; i<photos.getWidgetCount(); i++) {
-            ((SelectableImage)photos.getWidget(i)).setSelected(false);
-        }
-    }
-    
-    private void selectPhoto(ImageModel im) {
-        for (int i=0; i<photos.getWidgetCount(); i++) {
-            SelectableImage si = (SelectableImage)photos.getWidget(i);
-            if (Utils.isEqual(si.getImageModel().getPath(), im.getPath())) {
-                si.setSelected(true);
-            }
-        }
+        photos.primePhotos();
+        photos.clearSelection();
     }
     
     private void reset() {
         clearPhotoSelections();
-        nameField.setText(model.getName());
-        messageField.setText(model.getMessage());
-        if (model.getCategoryName() != null) {
-            int itemIndex=-1;
-            for (int i=0; itemIndex < 0 && i<categories.getItemCount(); i++) {
-                if (Utils.isEqual(categories.getItemText(i), model.getCategoryName())) {
-                    itemIndex = i;
+        if (model != null) {
+            nameField.setText(model.getName());
+            messageField.setText(model.getMessage());
+            if (model.getCategoryName() != null) {
+                int itemIndex=-1;
+                for (int i=0; itemIndex < 0 && i<categories.getItemCount(); i++) {
+                    if (Utils.isEqual(categories.getItemText(i), model.getCategoryName())) {
+                        itemIndex = i;
+                    }
+                }
+                if (itemIndex >= 0) {
+                    categories.setSelectedIndex(itemIndex);
                 }
             }
-            if (itemIndex >= 0) {
-                categories.setSelectedIndex(itemIndex);
-            }
-        }
-        List l = model.getChildren();
-        for (int i=0; i<l.size(); i++) {
-            ImageModel im = (ImageModel)l.get(i);
-            selectPhoto(im);
+            photos.setSelected(model.getChildren());
+        } else {
+            nameField.setText("");
+            messageField.setText("");
         }
     }
 
     protected void handleEvent(AppEvent event) {
         int eventType = event.type;
         int viewPostList = AppEvents.ViewMessageTemplate;
-        if (event.type == viewPostList) {
+        switch (event.type) {
+        case AppEvents.ViewMessageTemplate:
             if (event.data instanceof MessageTemplateModel) {
                 model = (MessageTemplateModel) event.data;
                 if (container == null) {
@@ -105,6 +97,12 @@ public class ViewMessageTemplateView extends BaseView {
                 }
             }
             reset();
+            break;
+        case AppEvents.ResetMessageTemplateView:
+            model = null;
+            container.removeAll();
+            container = null;
+            break;
         }
     }
 
@@ -122,18 +120,17 @@ public class ViewMessageTemplateView extends BaseView {
         
         page = new DockPanel();
 
+        photos = new SelectableImages(75, 75, .2, .5, "500px", "150px");
+        page.add(photos, DockPanel.NORTH);
         FormPanel form = new FormPanel();
         VerticalPanel vp = new VerticalPanel();
         vp.add(form);
         page.add(vp, DockPanel.CENTER);
         
-        HorizontalPanel categoriesPanel = new HorizontalPanel();
-        categoriesPanel.add(new Label("Default Category"));
         categories = new ListBox(false);
         categories.setVisibleItemCount(1);
         buildCategories();
-        categoriesPanel.add(categories);
-        vp.add(categoriesPanel);
+        vp.add(createLabeledField("Default Category", categories, 100, 400));
         
         nameField = new TextBox();
         vp.add(createLabeledField("Name", nameField, 100, 400));
@@ -145,16 +142,20 @@ public class ViewMessageTemplateView extends BaseView {
         Button saveButton = new Button("Save");
         saveButton.addSelectionListener(new SelectionListener() {
             public void widgetSelected(BaseEvent be) {
+                if (model == null) return;
+                
                 model.setName(nameField.getText());
                 model.setMessage(messageField.getText());
                 model.setCategoryName(categories.getItemText(categories.getSelectedIndex()));
-                model.removeAll();
-                for (int i=0; i<photos.getWidgetCount(); i++) {
-                    SelectableImage si = (SelectableImage)photos.getWidget(i);
-                    if (si.isSelected()) {
-                        model.add(si.getImageModel());
-                    }
+                
+                List selected = photos.getSelected();
+                List photoWrappers = new ArrayList(selected.size());
+                for (int i=0; i<selected.size(); i++) {
+                    ExternalPhoto p = (ExternalPhoto)selected.get(i);
+                    photoWrappers.add(new PhotoWrapper(new Long(-1L), p.getService(), p.getId(), p.getStandard()));
                 }
+                model.setChildren(photoWrappers);
+                
                 MessageTemplateServiceAsync serviceProxy = (MessageTemplateServiceAsync)GWT.create(MessageTemplateService.class);
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessageTemplateService");
@@ -185,27 +186,6 @@ public class ViewMessageTemplateView extends BaseView {
             }
         });
         buttons.add(resetButton);
-        
-        photos = new VerticalPanel();
-        photos.setBorderWidth(5);
-        page.add(new ScrollPanel(photos), DockPanel.EAST);
-        
-        MessagePhotoServiceAsync serviceProxy = (MessagePhotoServiceAsync)GWT.create(MessagePhotoService.class);
-        ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
-        target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessagePhotoService");
-        serviceProxy.getMessagePhotos(new AsyncCallback() {
-            public void onFailure(Throwable caught) {
-                Debug.println(Utils.getStacktraceAsString(caught));
-            }
-
-            public void onSuccess(Object result) {
-                List l = (List)result;
-                for (int i=0; i<l.size(); i++) {
-                    photos.add(new SelectableImage((ImageModel)l.get(i)));
-                }
-                reset();
-            }
-        });
         
     }
     

@@ -9,6 +9,7 @@ import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
 import net.mygwt.ui.client.mvc.Dispatcher;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.ThemeSelector;
@@ -26,7 +27,7 @@ import com.google.gwt.user.client.ui.DockPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
-public class AppView extends BaseView {
+public class AppView extends View {
 
     private Viewport viewport;
     private ContentPanel east;
@@ -100,6 +101,7 @@ public class AppView extends BaseView {
         switch (event.type) {
         case AppEvents.Init:
             Dispatcher.forwardEvent(AppEvents.ViewPostList);
+            //Dispatcher.forwardEvent(AppEvents.NavMessageTemplates);
             break;
         }
     }
@@ -162,7 +164,7 @@ public class AppView extends BaseView {
       toolbar.add(emailSettingsItem);
       
       ToolItem messageTemplatesItem = new ToolItem(Style.PUSH);
-      messageTemplatesItem.disable();
+      //messageTemplatesItem.disable();
       messageTemplatesItem.setText("Message Templates");
       messageTemplatesItem.addSelectionListener(new SelectionListener() {
         public void widgetSelected(BaseEvent be) {

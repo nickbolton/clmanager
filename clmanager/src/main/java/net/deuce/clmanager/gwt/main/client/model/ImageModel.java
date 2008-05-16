@@ -31,4 +31,10 @@ public class ImageModel extends Model {
     public void setUrl(String url) {
         set("url", url);
     }
+    public String getThumbnail() {
+        return (String)get("thumbnail");
+    }
+    public void setThumbnail(String thumbnail) {
+        set("thumbnail", thumbnail);
+    }
 }

@@ -11,7 +11,7 @@
   <many-to-one name="defaultCategory" column="DEFAULT_CATEGORY_ID" class="net.deuce.clmanager.domain.Category"/>
   <set inverse="true" lazy="true" name="photos">
    <key column="MESSAGE_TEMPLATE_ID"  on-delete="cascade"/>
-   <one-to-many class="net.deuce.clmanager.domain.MessagePhotoAssociation"/>
+   <one-to-many class="net.deuce.clmanager.domain.MessagePhoto"/>
   </set>
  </class>
  <query name="MessageTemplate.findAll">

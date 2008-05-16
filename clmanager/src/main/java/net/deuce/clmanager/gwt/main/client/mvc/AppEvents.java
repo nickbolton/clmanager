@@ -21,6 +21,7 @@ public class AppEvents {
     public static final int NavMessageTemplates = 40;
     public static final int ViewMessageTemplate = 42;
     public static final int RefreshMessageTemplates = 44;
+    public static final int ResetMessageTemplateView = 46;
     
     public static final int ViewCategories = 50; 
     public static final int CategorySubscribed = 52; 
