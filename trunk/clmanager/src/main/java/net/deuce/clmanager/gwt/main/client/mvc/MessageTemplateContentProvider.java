@@ -20,10 +20,7 @@ import com.google.gwt.user.client.rpc.ServiceDefTarget;
 public class MessageTemplateContentProvider extends RemoteContentProvider
     implements IContentProvider {
     
-    private BaseView view;
-    
-    public MessageTemplateContentProvider(BaseView view) {
-        this.view = view;
+    public MessageTemplateContentProvider() {
     }
 
     public void getData(LoadConfig config, DataCallback callback) {
@@ -34,15 +31,15 @@ public class MessageTemplateContentProvider extends RemoteContentProvider
         ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MessageTemplateService");
         final String modalOriginator = "MessageTemplateContentProvider.MessageTemplateService::getMessageTemplates";
-        view.goModal(modalOriginator, "Loading Message Templates...");
+        Utils.goModal(modalOriginator, "Loading Message Templates...");
         serviceProxy.getMessageTemplates(new AsyncCallback() {
             public void onFailure (Throwable caught) { 
-                view.clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 Debug.println(Utils.getStacktraceAsString(caught));
             } 
              
             public void onSuccess (Object result) { 
-                view.clearModal(modalOriginator);
+                Utils.clearModal(modalOriginator);
                 List l = (List)result;
                 MessageTemplateModel[] mtm = new MessageTemplateModel[l.size()];
                 for (int i=0; i<l.size(); i++) {

@@ -13,9 +13,9 @@ import net.deuce.clmanager.gwt.main.client.PostService;
 import net.deuce.clmanager.gwt.main.client.PostServiceAsync;
 import net.deuce.clmanager.gwt.main.client.UserService;
 import net.deuce.clmanager.gwt.main.client.UserServiceAsync;
-import net.deuce.clmanager.gwt.main.client.model.ImageModel;
 import net.deuce.clmanager.gwt.main.client.model.MailResponse;
 import net.deuce.clmanager.gwt.main.client.model.MessageTemplateModel;
+import net.deuce.clmanager.gwt.main.client.model.PhotoWrapper;
 import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.deuce.clmanager.gwt.main.client.model.UserModel;
 import net.deuce.clmanager.gwt.main.client.util.Utils;
@@ -26,6 +26,7 @@ import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.Listener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.MessageBox;
@@ -41,7 +42,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.Widget;
 
-public abstract class ReplyView extends BaseView {
+public abstract class ReplyView extends View {
     
     private static ListBox messageTemplates;
     private static Map messageTemplateMap = new HashMap();
@@ -122,14 +123,10 @@ public abstract class ReplyView extends BaseView {
     
     private boolean checkReply(PostModel post) {
         if (post.isResponded().booleanValue()) {
-            MessageBox messageSent = new MessageBox(Style.ICON_WARNING, Style.MODAL | Style.OK);
-            messageSent.setMessage("Already replied to post.");
-            messageSent.open();
+            Utils.warningMessage("Already replied to post.");
             return false;
         } else if (post.get("reply-pending") != null && ((Boolean)post.get("reply-pending")).booleanValue()) {
-            MessageBox messageSent = new MessageBox(Style.ICON_WARNING, Style.MODAL | Style.OK);
-            messageSent.setMessage("Reply pending...");
-            messageSent.open();
+            Utils.infoMessage("Reply pending...");
             return false;
         }
         return true;
@@ -230,9 +227,7 @@ public abstract class ReplyView extends BaseView {
         target.setServiceEntryPoint(GWT.getModuleBaseURL() + "MailService");
         AsyncCallback callback = new AsyncCallback() {
             public void onFailure(Throwable caught) {
-                MessageBox messageSent = new MessageBox(Style.ICON_ERROR, Style.MODAL | Style.OK);
-                messageSent.setMessage(Utils.getStacktraceAsString(caught));
-                messageSent.open();
+                Utils.errorMessage(Utils.getStacktraceAsString(caught));
                 AppEvent evt = new AppEvent(AppEvents.ClearReplyPending, post.getClId());
                 fireEvent(evt);
             }
@@ -243,11 +238,7 @@ public abstract class ReplyView extends BaseView {
                     if (response.getStatus().booleanValue()) {
                         markReplied(response.getClId());
                     } else {
-                        MessageBox replyFailed = new MessageBox(Style.ICON_ERROR, Style.MODAL | Style.OK);
-                        replyFailed.setMessage("Sending reply failed, reason:\n" + response.getMessage());
-                        System.out.println("ZZZ replyFailed size: " + replyFailed.getWidth() + ", " + replyFailed.getHeight());
-                        replyFailed.setSize(400, 200);
-                        replyFailed.open();
+                        Utils.errorMessage("Sending reply failed, reason:\n" + response.getMessage());
                         AppEvent evt = new AppEvent(AppEvents.ClearReplyPending, response.getClId());
                         fireEvent(evt);
                     }
@@ -256,9 +247,9 @@ public abstract class ReplyView extends BaseView {
             
         };
         List l = mtm.getChildren();
-        ImageModel[] pics = new ImageModel[l.size()];
+        PhotoWrapper[] pics = new PhotoWrapper[l.size()];
         for (int i=0; i<pics.length; i++) {
-            pics[i] = (ImageModel)l.get(i);
+            pics[i] = (PhotoWrapper)l.get(i);
         }
         StringBuffer subject = new StringBuffer("Re: ");
         subject.append(post.getTitle());

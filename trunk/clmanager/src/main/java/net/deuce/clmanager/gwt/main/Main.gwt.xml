@@ -2,6 +2,10 @@
 	<inherits name="com.google.gwt.user.User"/>
 	<inherits name="net.mygwt.ui.MyGWT" />
 	<inherits name="asquare.gwt.debug.Debug" />
+	<inherits name='com.googlecode.gwtx.Java'/>
+	<inherits name="com.googlecode.gwtx.java.Beans"/>
+	<inherits name='com.totsp.gwittir.Gwittir' />
+    <inherits name='com.totsp.gwittir.LoggingDisabled' />
 	
 	<!--inherits name="com.gwtext.GwtExt" /-->
 	
@@ -10,9 +14,10 @@
 	<servlet path="/CategoryService" class="net.deuce.clmanager.gwt.main.server.CategoryServiceImpl"/>
 	<servlet path="/PostService" class="net.deuce.clmanager.gwt.main.server.PostServiceImpl"/>
 	<servlet path="/MessageTemplateService" class="net.deuce.clmanager.gwt.main.server.MessageTemplateServiceImpl"/>
-	<servlet path="/MessagePhotoService" class="net.deuce.clmanager.gwt.main.server.MessagePhotoServiceImpl"/>
 	<servlet path="/MailService" class="net.deuce.clmanager.gwt.main.server.MailServiceImpl"/>
 	<servlet path="/UserService" class="net.deuce.clmanager.gwt.main.server.UserServiceImpl"/>
+	<servlet path="/FlickrService" class="net.deuce.clmanager.gwt.main.server.FlickrServiceImpl"/>
+	
 
 	<!--stylesheet src="js/ext/resources/css/ext-all.css" />
 	<script src="js/ext/adapter/ext/ext-base.js" />

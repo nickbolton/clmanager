@@ -5,7 +5,6 @@ import net.deuce.clmanager.domain.dao.CategorySubscriptionDao;
 import net.deuce.clmanager.domain.dao.CityDao;
 import net.deuce.clmanager.domain.dao.CitySubscriptionDao;
 import net.deuce.clmanager.domain.dao.ImageDao;
-import net.deuce.clmanager.domain.dao.MessagePhotoAssociationDao;
 import net.deuce.clmanager.domain.dao.MessagePhotoDao;
 import net.deuce.clmanager.domain.dao.MessageTemplateDao;
 import net.deuce.clmanager.domain.dao.PostActivitiesDao;
@@ -35,7 +34,6 @@ public class BaseServiceImpl extends RemoteServiceServlet {
     private ImageDao imageDao;
     private MessageTemplateDao messageTemplateDao;
     private MessagePhotoDao messagePhotoDao;
-    private MessagePhotoAssociationDao messagePhotoAssociationDao;
     private PreferenceDao preferenceDao;
     private UserPreferencesDao userPreferencesDao;
     
@@ -62,8 +60,6 @@ public class BaseServiceImpl extends RemoteServiceServlet {
             getBean("MessageTemplateDao", MessageTemplateDao.class);
         messagePhotoDao = (MessagePhotoDao)ApplicationContextUtil.getApplicationContext().
             getBean("MessagePhotoDao", MessagePhotoDao.class);
-        messagePhotoAssociationDao = (MessagePhotoAssociationDao)ApplicationContextUtil.getApplicationContext().
-            getBean("MessagePhotoAssociationDao", MessagePhotoAssociationDao.class);
         preferenceDao = (PreferenceDao)ApplicationContextUtil.getApplicationContext().
             getBean("PreferenceDao", PreferenceDao.class);
         userPreferencesDao = (UserPreferencesDao)ApplicationContextUtil.getApplicationContext().
@@ -193,17 +189,6 @@ public class BaseServiceImpl extends RemoteServiceServlet {
 
     public void setMessagePhotoDao(MessagePhotoDao messagePhotoDao) {
         this.messagePhotoDao = messagePhotoDao;
-    }
-
-
-    public MessagePhotoAssociationDao getMessagePhotoAssociationDao() {
-        return messagePhotoAssociationDao;
-    }
-
-
-    public void setMessagePhotoAssociationDao(
-        MessagePhotoAssociationDao messagePhotoAssociationDao) {
-        this.messagePhotoAssociationDao = messagePhotoAssociationDao;
     }
 
 

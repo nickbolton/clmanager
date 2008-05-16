@@ -50,7 +50,6 @@
                 <value>Category.hbm.xml</value>
                 <value>Image.hbm.xml</value>
                 <value>MessagePhoto.hbm.xml</value>
-                <value>MessagePhotoAssociation.hbm.xml</value>
                 <value>MessageTemplate.hbm.xml</value>
                 <value>Post.hbm.xml</value>
                 <value>CitySubscription.hbm.xml</value>
@@ -197,18 +196,6 @@
             <bean parent="abstractDaoTarget">
                 <constructor-arg>
                     <value>net.deuce.clmanager.domain.MessagePhoto</value>
-                </constructor-arg>
-            </bean>
-        </property>
-    </bean>
-    <bean id="MessagePhotoAssociationDao" parent="abstractDao">
-        <property name="proxyInterfaces">
-            <value>net.deuce.clmanager.domain.dao.MessagePhotoAssociationDao</value>
-        </property>
-        <property name="target">
-            <bean parent="abstractDaoTarget">
-                <constructor-arg>
-                    <value>net.deuce.clmanager.domain.MessagePhotoAssociation</value>
                 </constructor-arg>
             </bean>
         </property>

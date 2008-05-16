@@ -26,6 +26,7 @@ public class AppController extends Controller {
       registerEventType(AppEvents.RefreshMessageTemplates);
       registerEventType(AppEvents.NavMessageTemplates);
       registerEventType(AppEvents.ViewMessageTemplate);
+      registerEventType(AppEvents.ResetMessageTemplateView);
       registerEventType(AppEvents.NavEmailSettings);
       registerEventType(AppEvents.NavEmailSettings);
       registerEventType(AppEvents.NavSetView);
@@ -51,6 +52,7 @@ public class AppController extends Controller {
         case AppEvents.NavMessageTemplates:
             forwardToView(messageTemplateView, event);
             break;
+        case AppEvents.ResetMessageTemplateView:
         case AppEvents.ViewMessageTemplate:
             forwardToView(viewMessageTemplateView, event);
             break;

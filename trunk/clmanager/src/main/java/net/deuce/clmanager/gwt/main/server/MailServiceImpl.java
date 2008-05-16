@@ -1,13 +1,13 @@
 package net.deuce.clmanager.gwt.main.server;
 
-import java.io.File;
+import java.net.URL;
 import java.security.Security;
 import java.util.Date;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.activation.FileDataSource;
+import javax.activation.URLDataSource;
 import javax.mail.Message;
 import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
@@ -23,8 +23,8 @@ import javax.servlet.ServletException;
 import net.deuce.clmanager.domain.Preference;
 import net.deuce.clmanager.domain.UserPreferences;
 import net.deuce.clmanager.gwt.main.client.MailService;
-import net.deuce.clmanager.gwt.main.client.model.ImageModel;
 import net.deuce.clmanager.gwt.main.client.model.MailResponse;
+import net.deuce.clmanager.gwt.main.client.model.PhotoWrapper;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,7 +69,7 @@ public class MailServiceImpl extends UserServiceImpl implements MailService {
         return p;
     }
 
-    public MailResponse sendMail(String username, Long id, String to, String subject, String body, ImageModel[] pics) throws Exception {
+    public MailResponse sendMail(String username, Long id, String to, String subject, String body, PhotoWrapper[] pics) throws Exception {
         
         UserPreferences up = getUserPreferences(username);
         Preference smtpAuth = up.getPreference("smtpAuth");
@@ -122,18 +122,41 @@ public class MailServiceImpl extends UserServiceImpl implements MailService {
             multipart.addBodyPart(messageBodyPart);
             
             for (int i=0; pics != null && i<pics.length; i++) {
-                File f = new File(imageBasePath, pics[i].getPath());
-                if (!f.exists()) {
-                    log.error("Image file does not exist for id(" + pics[i].getId() + "): " + f.getAbsolutePath());
-                } else {
-                    messageBodyPart = new MimeBodyPart();
-                    DataSource source = new FileDataSource(f);
-                    messageBodyPart.setDataHandler(new DataHandler(source));
-                    messageBodyPart.setFileName(f.getName());
-                    multipart.addBodyPart(messageBodyPart);
-                }
+                messageBodyPart = new MimeBodyPart();
+                DataSource source = new URLDataSource(new URL(pics[i].getUrl()));
+                messageBodyPart.setDataHandler(new DataHandler(source));
+                messageBodyPart.setFileName("photo-"+(i+1));
+                multipart.addBodyPart(messageBodyPart);
             }
             msg.setContent(multipart);
+            
+            /*
+            StringBuffer htmlText = new StringBuffer();
+            htmlText.append("<p>").append(body).append("</p><br/><br/>");
+            for (int i=0; i<pics.length; i++) {
+                htmlText.append("<img src=\""+pics[i].getUrl()+"\"/><br/>");
+            }
+            
+            StringBuffer plainText = new StringBuffer(body);
+            plainText.append('\n');
+            for (int i=0; i<pics.length; i++) {
+                plainText.append('\n').append(pics[i].getUrl());
+            }
+            
+            Multipart multipart = new MimeMultipart("alternative");
+            
+            BodyPart plainMessageBodyPart = new MimeBodyPart();
+            plainMessageBodyPart.setContent(plainText.toString(),"text/plain");
+            
+            multipart.addBodyPart(plainMessageBodyPart);   
+
+            BodyPart htmlMessageBodyPart = new MimeBodyPart();
+            htmlMessageBodyPart.setContent(htmlText.toString(), "text/html");
+            
+            multipart.addBodyPart(htmlMessageBodyPart);
+            
+            msg.setContent(multipart);
+            */
             
             Transport.send(msg);
             return new MailResponse(id, "Success", Boolean.TRUE);

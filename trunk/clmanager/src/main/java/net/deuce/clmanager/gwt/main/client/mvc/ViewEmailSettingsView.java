@@ -16,6 +16,7 @@ import net.mygwt.ui.client.event.Listener;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.Button;
 import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.WidgetContainer;
@@ -35,7 +36,7 @@ import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
-public class ViewEmailSettingsView extends BaseView {
+public class ViewEmailSettingsView extends View {
 
     private Dialog dialog;
     private WidgetContainer page;
@@ -128,15 +129,15 @@ public class ViewEmailSettingsView extends BaseView {
                 ServiceDefTarget target = (ServiceDefTarget) serviceProxy;
                 target.setServiceEntryPoint(GWT.getModuleBaseURL() + "UserService");
                 final String modalOriginator = "ViewEmailSettingsView.UserService::setPreferences";
-                goModal(modalOriginator, "Saving Template...");
+                Utils.goModal(modalOriginator, "Saving Template...");
                 serviceProxy.setPreferences(user.getUsername(), preferences, new AsyncCallback() {
                     public void onFailure(Throwable caught) {
-                        clearModal(modalOriginator);
+                        Utils.clearModal(modalOriginator);
                         Debug.println(Utils.getStacktraceAsString(caught));
                     }
 
                     public void onSuccess(Object result) {
-                        clearModal(modalOriginator);
+                        Utils.clearModal(modalOriginator);
                         UserModel user = (UserModel)Registry.get("user");
                         user.addAll(preferences);
                         dialog.close();

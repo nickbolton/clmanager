@@ -9,6 +9,7 @@ import net.deuce.clmanager.gwt.main.client.model.PostModel;
 import net.mygwt.ui.client.Registry;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.WidgetContainer;
 import net.mygwt.ui.client.widget.layout.FlowLayout;
 import net.mygwt.ui.client.widget.layout.RowData;
@@ -20,7 +21,7 @@ import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Widget;
 
-public class PhotoView extends BaseView {
+public class PhotoView extends View {
 
     private WidgetContainer list;
     private long lastClick = 0L;

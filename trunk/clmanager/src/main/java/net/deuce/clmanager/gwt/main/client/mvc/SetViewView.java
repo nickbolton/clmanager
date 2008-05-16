@@ -5,6 +5,7 @@ import net.mygwt.ui.client.event.BaseEvent;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.widget.ContentPanel;
 import net.mygwt.ui.client.widget.Dialog;
 import net.mygwt.ui.client.widget.WidgetContainer;
@@ -13,7 +14,7 @@ import net.mygwt.ui.client.widget.layout.BorderLayoutData;
 
 import com.google.gwt.user.client.ui.HorizontalPanel;
 
-public class SetViewView extends BaseView {
+public class SetViewView extends View {
 
     private Dialog dialog;
 

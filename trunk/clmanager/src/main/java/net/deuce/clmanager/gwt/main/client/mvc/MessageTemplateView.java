@@ -13,6 +13,8 @@ import net.mygwt.ui.client.event.Listener;
 import net.mygwt.ui.client.event.SelectionListener;
 import net.mygwt.ui.client.mvc.AppEvent;
 import net.mygwt.ui.client.mvc.Controller;
+import net.mygwt.ui.client.mvc.Dispatcher;
+import net.mygwt.ui.client.mvc.View;
 import net.mygwt.ui.client.viewer.ISelection;
 import net.mygwt.ui.client.viewer.ISelectionChangedListener;
 import net.mygwt.ui.client.viewer.ListViewer;
@@ -33,7 +35,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
-public class MessageTemplateView extends BaseView {
+public class MessageTemplateView extends View {
     
     private Dialog dialog;
     private List list;
@@ -48,7 +50,7 @@ public class MessageTemplateView extends BaseView {
     
     protected void initialize() {
         dialog = new Dialog(Style.OK | Style.CLOSE | Style.RESIZE);
-        dialog.setMinimumSize(800, 355);
+        dialog.setMinimumSize(625, 500);
         //dialog.addStyleName("my-shell-plain");
         dialog.setText("Message Templates");
         
@@ -78,7 +80,7 @@ public class MessageTemplateView extends BaseView {
         list.setSelectionMode(Style.SINGLE);
         root = new Folder("root");
         viewer = new ListViewer(list);
-        viewer.setContentProvider(new MessageTemplateContentProvider(this));
+        viewer.setContentProvider(new MessageTemplateContentProvider());
         viewer.setLabelProvider(new ModelLabelProvider());
         
         viewer.addSelectionListener(new ISelectionChangedListener() {
@@ -134,8 +136,8 @@ public class MessageTemplateView extends BaseView {
                         }
     
                         public void onSuccess(Object result) {
-                            messageTemplateView.removeAll();
                             viewer.setInput(root);
+                            Dispatcher.forwardEvent(AppEvents.ResetMessageTemplateView);
                         }
                         
                     });

@@ -1,69 +1,39 @@
 package net.deuce.clmanager.gwt.main.client.model;
 
-import net.mygwt.ui.client.data.Model;
+import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class ServiceResponse extends Model {
+
+public class ServiceResponse implements IsSerializable {
+    
+    private boolean ok = true;
+    private String errorMessage = "";
     
     public ServiceResponse() {
-        setMinAge(0);
-        setMaxAge(99);
-        setNoFlagged(false);
-        setPhotosOnly(false);
-        setSearchTerm("");
     }
     
-    public ServiceResponse(int minAge, int maxAge, boolean noFlagged, boolean photosOnly, String searchTerm) {
-        setMinAge(minAge);
-        setMaxAge(maxAge);
-        setNoFlagged(noFlagged);
-        setPhotosOnly(photosOnly);
-        setSearchTerm(searchTerm);
+    public ServiceResponse(String errorMessage) {
+        this.ok = false;
+        this.errorMessage = errorMessage;
     }
     
     public String toString() {
-        return "PostFilter(minAge="+getMinAge()+", maxAge="+getMaxAge()+", "+
-            "noFlagged="+getNoFlagged()+", photosOnly="+getPhotosOnly()+
-            ", searchTerm="+getSearchTerm();
+        return "ServiceResponse - ok=" + ok +
+            ", errorMessage=" + errorMessage;
     }
     
-    public int getMinAge() {
-        return ((Integer)get("minAge")).intValue();
+    public boolean isOk() {
+        return ok;
     }
     
-    public void setMinAge(int minAge) {
-        set("minAge", new Integer(minAge));
+    public void setOk(boolean ok) {
+        this.ok = ok;
     }
     
-    public int getMaxAge() {
-        return ((Integer)get("maxAge")).intValue();
+    public String getErrorMessage() {
+        return errorMessage;
     }
     
-    public void setMaxAge(int maxAge) {
-        set("maxAge", new Integer(maxAge));
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
-    
-    public boolean getNoFlagged() {
-        return ((Boolean)get("noFlagged")).booleanValue();
-    }
-    
-    public void setNoFlagged(boolean noFlagged) {
-        set("noFlagged", new Boolean(noFlagged));
-    }
-    
-    public boolean getPhotosOnly() {
-        return ((Boolean)get("photosOnly")).booleanValue();
-    }
-    
-    public void setPhotosOnly(boolean photosOnly) {
-        set("photosOnly", new Boolean(photosOnly));
-    }
-    
-    public String getSearchTerm() {
-        return (String)get("searchTerm");
-    }
-    
-    public void setSearchTerm(String searchTerm) {
-        set("searchTerm", searchTerm);
-    }
-    
 }

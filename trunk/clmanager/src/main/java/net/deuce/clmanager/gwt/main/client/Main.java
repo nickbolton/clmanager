@@ -88,8 +88,6 @@ public class Main implements EntryPoint, HistoryListener {
           public void onSuccess (Object result) { 
               UserModel userModel = (UserModel)result;
               Registry.register("user", userModel);
-              
-              
               dispatcher.dispatch(AppEvents.Init);
           } 
       });

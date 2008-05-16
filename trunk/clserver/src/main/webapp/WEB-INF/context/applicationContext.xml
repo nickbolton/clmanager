@@ -78,7 +78,6 @@
                 <value>Category.hbm.xml</value>
                 <value>Image.hbm.xml</value>
                 <value>MessagePhoto.hbm.xml</value>
-                <value>MessagePhotoAssociation.hbm.xml</value>
                 <value>MessageTemplate.hbm.xml</value>
                 <value>Post.hbm.xml</value>
                 <value>CitySubscription.hbm.xml</value>
