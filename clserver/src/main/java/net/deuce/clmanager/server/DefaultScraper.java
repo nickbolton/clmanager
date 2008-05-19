@@ -144,9 +144,13 @@ public class DefaultScraper implements Scraper {
                 if (post != null && (post.isFlagged() || post.isSpam())) continue;
                 
                 post = new Post(clId, title, age, null, location, replyAddress, null, city, category);
-                scrapePost(post, category);
-                if (post.getClId() > 0) {
-                    posts.add(post);
+                try {
+                    scrapePost(post, category);
+                    if (post.getClId() > 0) {
+                        posts.add(post);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to scrap post: " + post.buildUrl() + " - " + e.getMessage());
                 }
                 refreshSession();
             }
