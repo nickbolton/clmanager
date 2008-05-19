@@ -3,11 +3,11 @@
                                          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
  <session-factory name="hibernate">
-  <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
-  <property name="hibernate.connection.password">deuce</property>
-  <property name="hibernate.connection.url">jdbc:postgresql://localhost/clmanager_test</property>
+  <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+  <property name="hibernate.connection.password">qopklm1</property>
+  <property name="hibernate.connection.url">jdbc:mysql://localhost/clmanager</property>
   <property name="hibernate.connection.username">deuce</property>
-  <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+  <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
   <property name="hibernate.current_session_context_class">thread</property>
   <mapping resource="City.hbm.xml"/>
   <mapping resource="CitySubscription.hbm.xml"/>
