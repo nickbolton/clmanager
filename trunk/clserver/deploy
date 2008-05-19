@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mvn -Dmaven.test.skip=true install && mv $TOMCAT_HOME/webapps/clserver/images $TOMCAT_HOME; ant deploy && mv $TOMCAT_HOME/images  $TOMCAT_HOME/webapps/clserver
