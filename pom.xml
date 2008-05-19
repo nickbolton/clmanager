@@ -34,6 +34,7 @@
     <mygwt.version>0.5.2</mygwt.version>
     <portlet-api.version>1.0</portlet-api.version>
     <postgresql.version>8.2-504.jdbc3</postgresql.version>
+    <mysql.version>5.0.8</mysql.version>
     <resource-pool.version>1.0.0-rc-8-SNAPSHOT</resource-pool.version>
     <rome.version>0.9</rome.version>
     <rome-fetcher.version>0.9</rome-fetcher.version>
@@ -81,6 +82,11 @@
         <groupId>postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${postgresql.version}</version>
+      </extension>
+      <extension>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>${mysql.version}</version>
       </extension>
     </extensions>
     <plugins>
