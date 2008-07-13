@@ -55,6 +55,8 @@
         <property name="fileService" ref="fileService"/>
         <property name="maxMemorySize" value="1024"/>
         <property name="maxRequestSize" value="2048000"/>
+        <property name="debug" value="false"/>
+        <property name="debugToAddress" value="larvell.jones@mac.com"/>
     </bean>
 
     <bean id="postsController" class="net.deuce.cl.mvc.PostsController" parent="abstractController">
