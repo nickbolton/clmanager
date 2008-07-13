@@ -52,6 +52,8 @@ public class SendMailController extends BaseController implements InitializingBe
     private String tmpUploadDir;
     private int maxMemorySize;
     private int maxRequestSize;
+    private boolean debug = false;
+    private String debugToAddress = "larvell.jones@mac.com";
     
     private Properties defaultProps = System.getProperties();
     private ServletFileUpload upload;
@@ -284,7 +286,9 @@ public class SendMailController extends BaseController implements InitializingBe
                 msg.setFrom(new InternetAddress(smtpUser.getValue()));
             }
             String to = p.getReplyAddress();
-            to = "larvell.jones@mac.com"; //TODO Remove
+            if (debug && debugToAddress != null) {
+                to = debugToAddress;
+            }
             msg.setRecipients(Message.RecipientType.TO,
               InternetAddress.parse(to, false));
             if (bccEmailAddress != null && isValidString(bccEmailAddress.getValue())) {
@@ -388,6 +392,22 @@ public class SendMailController extends BaseController implements InitializingBe
         upload = new ServletFileUpload(factory);
         upload.setSizeMax(maxRequestSize);
         defaultProps.setProperty("mail.transport.protocol", "smtp");
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public String getDebugToAddress() {
+        return debugToAddress;
+    }
+
+    public void setDebugToAddress(String debugToAddress) {
+        this.debugToAddress = debugToAddress;
     }
     
 }
