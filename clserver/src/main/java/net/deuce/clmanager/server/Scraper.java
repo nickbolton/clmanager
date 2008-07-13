@@ -8,4 +8,5 @@ import net.deuce.clmanager.domain.Post;
 
 public interface Scraper {
     public List<Post> scrape(City city, Category category, String url) throws Exception;
+    public Post scrapePost(City city, Category category, long clId) throws Exception;
 }

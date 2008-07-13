@@ -22,15 +22,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.gwt</groupId>
-      <artifactId>gwt-user</artifactId>
-      <version>${gwt-user.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring</artifactId>
-      <version>${spring.version}</version>
+      <version>${springframework.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

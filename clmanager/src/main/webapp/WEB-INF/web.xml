@@ -1,158 +1,180 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
+<?xml version="1.0" encoding="ISO-8859-1"?>
+ 
 <web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         version="2.4"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-app_2_4.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+    version="2.4">
 
-    <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>/WEB-INF/context/applicationContext.xml</param-value>
-    </context-param>
+  <display-name>spring-portlet-template</display-name>
 
-    <listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-    </listener>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
 
-    <servlet>
-        <servlet-name>view-servlet</servlet-name>
-        <servlet-class>org.springframework.web.servlet.ViewRendererServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <filter>
+    <filter-name>compressionFilter</filter-name>
+    <filter-class>net.deuce.cl.service.CompressionFilter</filter-class>
+    <init-param>
+      <param-name>compressionThreshold</param-name>
+      <param-value>10</param-value>
+    </init-param>
+  </filter>
 
-    <servlet>
-        <servlet-name>cityservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.CityServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <filter-mapping>
+   <filter-name>compressionFilter</filter-name>
+   <servlet-name>dispatch</servlet-name>
+ </filter-mapping>
 
-    <servlet>
-        <servlet-name>categoryservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.CategoryServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet>
+    <servlet-name>dispatch</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
 
-    <servlet>
-        <servlet-name>postservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.PostServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet>
+    <servlet-name>posts</servlet-name>
+    <servlet-class>net.deuce.cl.service.PostService</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
 
-    <servlet>
-        <servlet-name>imageservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.ImageServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/posts</url-pattern>
+  </servlet-mapping>
 
-    <servlet>
-        <servlet-name>images</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.ImageServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/email</url-pattern>
+  </servlet-mapping>
 
-    <servlet>
-        <servlet-name>messagetemplateservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.MessageTemplateServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/signup</url-pattern>
+  </servlet-mapping>
 
-    <servlet>
-        <servlet-name>messagephotoservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.MessagePhotoServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/login</url-pattern>
+  </servlet-mapping>
 
-    <servlet>
-        <servlet-name>userservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.UserServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
 
-    <servlet>
-        <servlet-name>mailservice</servlet-name>
-        <servlet-class>net.deuce.clmanager.gwt.main.server.MailServiceImpl</servlet-class>
-        <load-on-startup>1</load-on-startup>
-        <init-param>
-            <param-name>smtpServer</param-name>
-            <param-value>smtp.gmail.com</param-value>
-        </init-param>
-        <init-param>
-            <param-name>smtpAuth</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <param-name>smtpPort</param-name>
-            <param-value>465</param-value>
-        </init-param>
-        <init-param>
-            <param-name>fromAddress</param-name>
-            <param-value>larvell.jones2@gmail.com</param-value>
-        </init-param>
-        <init-param>
-            <param-name>bccAddress</param-name>
-            <param-value>bolton.nick@gmail.com</param-value>
-        </init-param>
-        <init-param>
-            <param-name>smtpUser</param-name>
-            <param-value>larvell.jones2@gmail.com</param-value>
-        </init-param>
-        <init-param>
-            <param-name>smtpPassword</param-name>
-            <param-value>gqopklm1</param-value>
-        </init-param>
-        <init-param>
-            <param-name>imageBasePath</param-name>
-            <param-value>/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clserver</param-value>
-        </init-param>
-    </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/create</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>view-servlet</servlet-name>
-        <url-pattern>/WEB-INF/servlet/view</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/auth</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>cityservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/CityService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/main</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>categoryservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/CategoryService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/selectCity</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>postservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/PostService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/selectCat</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>imageservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/ImageService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/fav</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>messagetemplateservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MessageTemplateService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/tf</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>messagephotoservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MessagePhotoService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/mt</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>userservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/UserService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/view</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>mailservice</servlet-name>
-        <url-pattern>/net.deuce.clmanager.gwt.main.Main/MailService</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/viewed</url-pattern>
+  </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>images</servlet-name>
-        <url-pattern>/images/*</url-pattern>
-    </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/flag</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/sendmail</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/getmt</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/sf</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/file</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/subcity</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/unsubcity</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/subcat</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/unsubcat</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/cities</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/cats</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>dispatch</servlet-name>
+    <url-pattern>/setemail</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>
+      index.jsp
+    </welcome-file>
+  </welcome-file-list>
 </web-app>

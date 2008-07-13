@@ -1,20 +1,30 @@
 package net.deuce.clmanager.domain;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class UserPreferences {
+public class UserPreferences implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String username;
+    private String password;
     private Set<CitySubscription> citySubscriptions = new HashSet<CitySubscription>(0);
     private Set<CategorySubscription> categorySubscriptions = new HashSet<CategorySubscription>(0);
     private Set<Preference> preferences = new HashSet<Preference>(0);
+    private Set<SavedFile> savedFiles = new HashSet<SavedFile>(0);
+    private Set<MessageTemplate> messageTemplates = new HashSet<MessageTemplate>(0);
     private transient Map<String, Preference> preferenceMap = null;
     private transient Map<City, CitySubscription> citySubscriptionMap = null;
     private transient Map<Category, CategorySubscription> categorySubscriptionMap = null;
+    private transient List<Long> favorites = null;
+    
     
     public Long getId() {
         return id;
@@ -27,6 +37,12 @@ public class UserPreferences {
     }
     public void setUsername(String username) {
         this.username = username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
     }
     public Set<CitySubscription> getCitySubscriptions() {
         return citySubscriptions;
@@ -47,16 +63,35 @@ public class UserPreferences {
     public Set<Preference> getPreferences() {
         return preferences;
     }
-
+    
     public void setPreferences(Set<Preference> preferences) {
         this.preferences = preferences;
         preferenceMap = null;
+        favorites = null;
     }
 
     public void addPreference(Preference p) {
         preferences.add(p);
         if (preferenceMap != null) {
             preferenceMap.put(p.getName(), p);
+        }
+        favorites = null;
+    }
+    
+    public void removePreference(String name) {
+        Preference removedPreference = null;
+        for (Preference p : preferences) {
+            if (p.getName().equals(name)) {
+                removedPreference = p;
+                break;
+            }
+        }
+        if (removedPreference != null) {
+            preferences.remove(removedPreference);
+            if (preferenceMap != null) {
+                preferenceMap.remove(name);
+            }
+            favorites = null;
         }
     }
     
@@ -100,6 +135,22 @@ public class UserPreferences {
         return p.getValue();
     }
     
+    public int getFavoriteCount() {
+        return getFavorites().size();
+    }
+    
+    public List<Long> getFavorites() {
+        if (favorites == null) {
+            favorites = new LinkedList<Long>();
+            for (Preference p : preferences) {
+                if (p.getName().startsWith("fav:")) {
+                    favorites.add(Long.parseLong(p.getValue()));
+                }
+            }
+        }
+        return favorites;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         boolean b = false;
@@ -112,6 +163,18 @@ public class UserPreferences {
     @Override
     public int hashCode() {
         return username.hashCode();
+    }
+    public Set<SavedFile> getSavedFiles() {
+        return savedFiles;
+    }
+    public void setSavedFiles(Set<SavedFile> savedFiles) {
+        this.savedFiles = savedFiles;
+    }
+    public Set<MessageTemplate> getMessageTemplates() {
+        return messageTemplates;
+    }
+    public void setMessageTemplates(Set<MessageTemplate> messageTemplates) {
+        this.messageTemplates = messageTemplates;
     }
 
 }

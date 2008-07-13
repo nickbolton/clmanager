@@ -28,11 +28,14 @@ public class RefreshingProperties extends Properties {
         try {
             FileInputStream fis = new FileInputStream(file);
             load(fis);
-            System.out.println("refreshing properties:");
-            Enumeration en = keys();
-            while (en.hasMoreElements()) {
-                String key = (String)en.nextElement();
-                System.out.println("\t"+key+'='+getProperty(key));
+            if (log.isDebugEnabled()) {
+                StringBuffer sb = new StringBuffer("\nrefreshing properties:\n");
+                Enumeration en = keys();
+                while (en.hasMoreElements()) {
+                    String key = (String)en.nextElement();
+                    sb.append("\t"+key+'='+getProperty(key)+'\n');
+                }
+                log.debug(sb.toString());
             }
         } catch (IOException ioe) {
             log.error(ioe);

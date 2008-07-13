@@ -22,21 +22,15 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>${servlet-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
       <version>${tagsoup.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>scrapeforge</groupId>
-      <artifactId>scrapeforge</artifactId>
-      <version>${scrapeforge.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>hotsax</groupId>
-      <artifactId>hotsax</artifactId>
-      <version>${hotsax.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -46,21 +40,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>com.google.gwt</groupId>
-      <artifactId>gwt-user</artifactId>
-      <version>${gwt-user.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>mygwt</groupId>
-      <artifactId>mygwt</artifactId>
-      <version>${mygwt.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring</artifactId>
-      <version>${spring.version}</version>
+      <version>${springframework.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

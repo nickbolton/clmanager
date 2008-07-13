@@ -8,6 +8,8 @@ package net.deuce.clmanager.domain;
  */
 public class Preference  implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private UserPreferences userPreferences;
     private String name;
@@ -51,6 +53,11 @@ public class Preference  implements java.io.Serializable {
 
     public void setUserPreferences(UserPreferences userPreferences) {
         this.userPreferences = userPreferences;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + name + ": " + value + "}";
     }
 
     @Override

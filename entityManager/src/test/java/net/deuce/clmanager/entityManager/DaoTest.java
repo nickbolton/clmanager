@@ -44,7 +44,7 @@ public class DaoTest extends TestCase {
     }
     
     public Post createPost(City city, Category cat, Long clId, String title, String age, String content, String location, String replyAddress) {
-        Post post = new Post(clId, title, age, content, location, replyAddress, new Date(), city, cat);
+        Post post = new Post(clId, title, age, content, location, replyAddress, new Date(), city, null, cat);
         getPostDao().create(post);
         return post;
     }

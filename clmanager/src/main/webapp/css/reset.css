@@ -1,0 +1,55 @@
+body, div, ol, ul, li, h1, h2, h3, h4, h5, h6, input, p, fieldset, dl, dt, dd, td, th {
+margin:0pt;
+outline-color:-moz-use-text-color;
+outline-style:none;
+outline-width:medium;
+padding:0pt;
+}
+code, kbd, samp, pre, tt, var, textarea, input, select, isindex, listing, xmp, plaintext {
+-x-system-font:none;
+font-family:inherit;
+font-size:inherit;
+font-size-adjust:inherit;
+font-stretch:inherit;
+font-style:inherit;
+font-variant:inherit;
+font-weight:inherit;
+line-height:normal;
+white-space:normal;
+}
+dfn, i, cite, var, address, em {
+font-style:normal;
+}
+th, b, strong, h1, h2, h3, h4, h5, h6 {
+font-size:1em;
+font-weight:normal;
+}
+a, img, a img, iframe, form, fieldset, abbr, acronym, object, applet, table {
+border:medium none;
+}
+table {
+border-collapse:collapse;
+border-spacing:0pt;
+}
+caption, th, td, center {
+text-align:left;
+vertical-align:middle;
+}
+body {
+background:#FFFFFF none repeat scroll 0% 0%;
+color:#000000;
+}
+q {
+quotes:"" "";
+}
+ul, ol, dir, menu {
+list-style-image:none;
+list-style-position:outside;
+list-style-type:none;
+}
+sub, sup {
+vertical-align:baseline;
+}
+a {
+color:inherit;
+}

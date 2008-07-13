@@ -7,18 +7,27 @@
    <generator class="native"/>
   </id>
   <property column="USERNAME" unique="true" index="up_username_idx" generated="never" lazy="false" name="username" type="string"/>
+  <property column="PASSWORD" unique="false" generated="never" lazy="false" name="password" type="string"/>
 
-  <set inverse="true" lazy="true" name="preferences">
+  <set inverse="true" lazy="false" name="preferences">
    <key column="USER_PREFERENCES_ID"  on-delete="cascade"/>
    <one-to-many class="net.deuce.clmanager.domain.Preference"/>
   </set>
-  <set inverse="true" lazy="true" name="citySubscriptions">
+  <set inverse="true" lazy="false" name="savedFiles">
+   <key column="USER_PREFERENCES_ID"  on-delete="cascade"/>
+   <one-to-many class="net.deuce.clmanager.domain.SavedFile"/>
+  </set>
+  <set inverse="true" lazy="false" name="citySubscriptions">
    <key column="USER_PREFERENCES_ID"  on-delete="cascade"/>
    <one-to-many class="net.deuce.clmanager.domain.CitySubscription"/>
   </set>
-  <set inverse="true" lazy="true" name="categorySubscriptions">
+  <set inverse="true" lazy="false" name="categorySubscriptions">
    <key column="USER_PREFERENCES_ID"  on-delete="cascade"/>
    <one-to-many class="net.deuce.clmanager.domain.CategorySubscription"/>
+  </set>
+  <set inverse="true" lazy="false" name="messageTemplates">
+   <key column="USER_PREFERENCES_ID"  on-delete="cascade"/>
+   <one-to-many class="net.deuce.clmanager.domain.MessageTemplate"/>
   </set>
  </class>
  <query name="UserPreferences.findUniqueByUsername">

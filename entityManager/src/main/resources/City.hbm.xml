@@ -8,6 +8,10 @@
   </id>
   <property column="NAME" unique="true" generated="never" lazy="false" name="name" type="string"/>
   <property column="URL" generated="never" lazy="false" name="url" type="string"/>
+  <set inverse="true" lazy="false" name="areas" order-by="NAME ASC">
+   <key column="CITY_ID"  on-delete="cascade"/>
+   <one-to-many class="net.deuce.clmanager.domain.CityArea"/>
+  </set>
  </class>
  <query name="City.findAll">
   <![CDATA[select c from net.deuce.clmanager.domain.City c order by c.name]]>

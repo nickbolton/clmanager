@@ -11,6 +11,8 @@ import java.util.Set;
  */
 public class Post  implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private Long clId;
     private String title;
@@ -23,14 +25,16 @@ public class Post  implements java.io.Serializable {
     private boolean pic;
     private boolean fetched;
     private boolean spam;
+    private String url;
     private City city;
+    private CityArea cityArea;
     private Category category;
-    private Set images = new HashSet(0);
+    private Set<Image> images = new HashSet<Image>(0);
 
     public Post() {
     }
     
-    public Post(Long clId, String title, String age, String content, String location, String replyAddress, Date date, City city, Category category) {
+    public Post(Long clId, String title, String age, String content, String location, String replyAddress, Date date, City city, CityArea cityArea, Category category) {
        this.clId = clId;
        this.title = title;
        this.age = age;
@@ -42,19 +46,10 @@ public class Post  implements java.io.Serializable {
        this.pic = false;
        this.fetched = false;
        this.city = city;
+       this.cityArea = cityArea;
        this.category = category;
     }
     
-    public String buildUrl() {
-        String cityUrl = city.getUrl();
-        StringBuffer url = new StringBuffer(cityUrl);
-        if (!cityUrl.endsWith("/")) {
-            url.append('/');
-        }
-        url.append(category.getExternalName()).append('/').append(clId).append(".html");
-        return url.toString();
-    }
-   
     public Long getId() {
         return this.id;
     }
@@ -125,11 +120,11 @@ public class Post  implements java.io.Serializable {
     public void setFetched(boolean fetched) {
         this.fetched = fetched;
     }
-    public Set getImages() {
+    public Set<Image> getImages() {
         return this.images;
     }
     
-    public void setImages(Set images) {
+    public void setImages(Set<Image> images) {
         this.images = images;
     }
 
@@ -177,6 +172,22 @@ public class Post  implements java.io.Serializable {
     @Override
     public int hashCode() {
         return clId.hashCode();
+    }
+
+    public CityArea getCityArea() {
+        return cityArea;
+    }
+
+    public void setCityArea(CityArea cityArea) {
+        this.cityArea = cityArea;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
 

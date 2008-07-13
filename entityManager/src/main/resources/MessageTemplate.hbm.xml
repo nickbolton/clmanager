@@ -7,12 +7,11 @@
    <generator class="native"/>
   </id>
   <property column="NAME" generated="never" lazy="false" name="name" type="string"/>
+  <property column="SUBJECT" generated="never" lazy="false" name="subject" type="string"/>
+  <property column="FILES" generated="never" lazy="false" name="files" type="string"/>
   <property column="MESSAGE" generated="never" lazy="false" name="message" type="text"/>
+  <many-to-one name="userPreferences" column="USER_PREFERENCES_ID" class="net.deuce.clmanager.domain.UserPreferences" not-null="true"/>
   <many-to-one name="defaultCategory" column="DEFAULT_CATEGORY_ID" class="net.deuce.clmanager.domain.Category"/>
-  <set inverse="true" lazy="true" name="photos">
-   <key column="MESSAGE_TEMPLATE_ID"  on-delete="cascade"/>
-   <one-to-many class="net.deuce.clmanager.domain.MessagePhoto"/>
-  </set>
  </class>
  <query name="MessageTemplate.findAll">
    <![CDATA[select mt from net.deuce.clmanager.domain.MessageTemplate mt order by mt.name]]>

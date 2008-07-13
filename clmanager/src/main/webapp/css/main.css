@@ -1,0 +1,163 @@
+@charset "UTF-8";
+/* CSS Document */
+
+table#flex1 tbody td {
+	border-bottom:1px solid #FFFFFF;
+	border-right:1px solid #EEEEEE;
+	font-size:8pt;
+}
+div.hDiv thead th {
+	font-size:12px
+}
+h1 {
+	font-size: 26px;
+	font-weight: normal;
+	margin: 0px;
+	color: #0099FF;
+}
+#byline {
+	font-size:14px
+}
+.flexigrid div.bDiv div.post-flags {
+	white-space: nowrap;
+	padding: 0px;
+}
+.flexigrid div.bDiv div.post-viewed, .flexigrid div.bDiv div.post-not-viewed, .flexigrid div.bDiv div.post-fav, .flexigrid div.bDiv div.post-not-fav, .flexigrid div.bDiv div.post-flag, .flexigrid div.bDiv div.post-not-flag, .flexigrid div.bDiv div.post-pic, .flexigrid div.bDiv div.post-not-pic, .flexigrid div.bDiv div.post-res, .flexigrid div.bDiv div.post-not-res {
+	height: 16px;
+	width: 16px;
+	padding: 0px;
+	float: left;
+}
+.flexigrid div.cDrag div:hover, .flexigrid div.cDrag div.dragging {
+	background:transparent none repeat scroll;
+}
+.flexigrid div.cDrag div {
+	float: left;
+	background: none;
+	display: block;
+	position: absolute;
+	height: 24px;
+	width: 5px;
+	cursor: default;
+}
+.flexigrid div.bDiv tr:hover td, .flexigrid div.bDiv tr:hover td.sorted, .flexigrid div.bDiv tr.trOver td.sorted, .flexigrid div.bDiv tr.trOver td {
+	background:#F1FFE6 none repeat scroll 0% 0%;
+}
+.flexigrid div.bDiv tr.trSelected:hover td, .flexigrid div.bDiv tr.trSelected:hover td.sorted, .flexigrid div.bDiv tr.trOver.trSelected td.sorted, .flexigrid div.bDiv tr.trOver.trSelected td, .flexigrid tr.trSelected td.sorted, .flexigrid tr.trSelected td {
+	background:#007934 url(images/effects/gloss.png) repeat-x scroll 0pt 50% !important;
+	color:#FFFFFF !important;
+}
+div#column-transactions div#controls-bottom.controls {
+	-moz-border-radius-bottomleft: 0px;
+	-moz-border-radius-bottomright: 0px;
+}
+div#column-transactions div#controls-bottom.controls {
+	margin: 0pt 0pt 0px;
+	height: 25px;
+	border-bottom: 0px;
+}
+div#post-contents-wrapper {
+	height: 320px;
+	width: 518px;
+	border-color: #EEEEEE;
+	border-style: solid solid solid;
+	border-width: 0px 1px 1px;
+}
+div#post-contents {
+	margin: 5px;
+	overflow: auto;
+	height: 230px;
+}
+#post-slideshow {
+	overflow:auto;
+	height:766px;
+}
+div#post-detail-wrapper {
+	background:#F6F6F5 none repeat scroll 0% 0%;
+	width: 518px;
+	height: 85px;
+}
+div#post-detail table {
+	margin: 5px;
+}
+div#post-detail td {
+	font-size: 10px;
+}
+div#column-accounts.column ul a.city, a.cat {
+	font-size: 8pt;
+	margin-left: 10px;
+}
+div.post-not-fav {
+	background: url(images/icons/post-not-fav.png)
+}
+div.post-fav {
+	background: url(images/icons/post-fav.png)
+}
+div.post-not-flag {
+	background: url(images/icons/post-not-flag.png)
+}
+div.post-flag {
+	background: url(images/icons/post-flag.png)
+}
+div.post-not-pic {
+	background: url(images/icons/post-not-pic.png)
+}
+div.post-pic {
+	background: url(images/icons/post-pic.png)
+}
+div.post-not-res {
+	background: url(images/icons/post-not-res.png)
+}
+div.post-res {
+	background: url(images/icons/post-res.png)
+}
+div.post-not-viewed {
+	background: url(images/icons/post-not-viewed.png)
+}
+div.post-viewed {
+	background: url(images/icons/post-viewed.png)
+}
+div#reply-dialog {
+	padding: 0px;
+	margin: 0px;
+	margin-bottom: 35px;
+	margin-top: 10px;
+	margin-left: 15px;
+	margin-right: 15px;
+}
+div#reply-dialog-content {
+	width: 100%;
+	height: 100%;
+}
+#reply-dialog-text {
+	text-wrap: normal;
+	width: 100%;
+	height: 70%;
+}
+div#reply-dialog-file-upload {
+	width: 100%;
+	height: 30%;
+	margin-bottom: 15px;
+}
+#reply-dialog-file-list-div {
+float: left;
+overflow: auto;
+}
+div#reply-dialog-file-list {
+float: left;
+}
+div#reply-dialog-saved-list {
+	margin-left: 10px;
+	width: 40%;
+	float: left;
+	overflow: auto;
+}
+a#reply-dialog-attach-another-a {
+	float: bottom;
+}
+#reply-dialog-subject {
+margin: 10px;
+}
+#reply-dialog-subject-div {
+width: 100%;
+}

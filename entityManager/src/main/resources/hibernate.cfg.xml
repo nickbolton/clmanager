@@ -10,6 +10,7 @@
   <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
   <property name="hibernate.current_session_context_class">thread</property>
   <mapping resource="City.hbm.xml"/>
+  <mapping resource="CityArea.hbm.xml"/>
   <mapping resource="CitySubscription.hbm.xml"/>
   <mapping resource="Category.hbm.xml"/>
   <mapping resource="CategorySubscription.hbm.xml"/>
@@ -20,5 +21,6 @@
   <mapping resource="MessagePhoto.hbm.xml"/>
   <mapping resource="Preference.hbm.xml"/>
   <mapping resource="UserPreferences.hbm.xml"/>
+  <mapping resource="SavedFile.hbm.xml"/>
  </session-factory>
 </hibernate-configuration>

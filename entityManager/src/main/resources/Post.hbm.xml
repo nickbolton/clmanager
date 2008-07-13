@@ -12,20 +12,25 @@
   <property column="CONTENT" generated="never" lazy="false" name="content" type="text"/>
   <property column="LOCATION" generated="never" lazy="false" name="location" type="string"/>
   <property column="REPLY_ADDRESS" generated="never" lazy="false" name="replyAddress" type="string"/>
-  <property column="DATE" generated="never" lazy="false" name="date" type="date"/>
+  <property column="URL" generated="never" lazy="false" name="url" type="string"/>
+  <property column="DATE" generated="never" lazy="false" name="date" type="date" not-null="true"/>
   <property column="FLAGGED" generated="never" lazy="false" name="flagged" type="boolean"/>
   <property column="PIC" generated="never" lazy="false" name="pic" type="boolean"/>
   <property column="FETCHED" generated="never" lazy="false" name="fetched" type="boolean"/>
   <property column="SPAM" generated="never" lazy="false" index="post_spam_idx" name="spam" type="boolean"/>
   <many-to-one name="city" column="CITY_ID" class="net.deuce.clmanager.domain.City"/>
+  <many-to-one name="cityArea" column="CITY_AREA_ID" class="net.deuce.clmanager.domain.CityArea"/>
   <many-to-one name="category" column="CATEGORY_ID" class="net.deuce.clmanager.domain.Category"/>
-  <set inverse="true" lazy="true" name="images" order-by="URL ASC">
+  <set inverse="true" lazy="false" name="images" order-by="URL ASC">
    <key column="POST_ID"  on-delete="cascade"/>
    <one-to-many class="net.deuce.clmanager.domain.Image"/>
   </set>
  </class>
  <query name="Post.findUniqueByClId">
   <![CDATA[select p from net.deuce.clmanager.domain.Post p where p.clId  = ? ]]>
+ </query>
+ <query name="Post.findUniqueByMaxId">
+  <![CDATA[select p from net.deuce.clmanager.domain.Post p where p.id = max(p.id) ]]>
  </query>
  <!--query name="Post.findByCityAndCategory">
   <![CDATA[select p from net.deuce.clmanager.domain.Post as p left join net.deuce.clmanager.domain.PostActivities as pa where p.spam = 0 and (p.flagged = 0 or (pa.post = p and pa.username = ? and pa.viewed = 1)) and p.city = ? and p.category = ? order by p.clId desc]]>
