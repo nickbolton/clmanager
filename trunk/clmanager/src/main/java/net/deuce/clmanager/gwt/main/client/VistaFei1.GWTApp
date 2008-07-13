@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<vistamax.gwt:GWTRootDiagram xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vistamax.gwt="http://vistamax.gwt" id="w12099618873170" name="VistaFei1" template="GWTApp" application="true" defaultView="w12099618873170" stylesheet="css/default.css">
-  <nodes xsi:type="vistamax.gwt:GWTStackPanel" id="w12099620815631" name="StackPanel74399" template="GWTStackPanel" location="382,53" size="140,160" stringHeight="160" stringWidth="140"/>
-  <nodes xsi:type="vistamax.gwt:GWTDockPanel" id="w12099621082142" name="DockPanel686873" template="GWTDockPanel" location="130,68" size="213,173" stringHeight="173" stringWidth="213" borderWidth="1" spacing="5"/>
-  <topRuler unit="2" horizontal="true"/>
-  <leftRuler unit="2"/>
-</vistamax.gwt:GWTRootDiagram>

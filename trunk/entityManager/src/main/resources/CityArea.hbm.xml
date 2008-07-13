@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.CityArea" table="CITY_AREA">
+  <id type="long" column="CITY_AREA_ID" name="id">
+   <generator class="native"/>
+  </id>
+  <property column="NAME" unique="true" generated="never" lazy="false" name="name" type="string"/>
+  <property column="EXTERNAL_NAME" unique="true" generated="never" lazy="false" name="externalName" type="string"/>
+  <many-to-one name="city" column="CITY_ID" class="net.deuce.clmanager.domain.City"/>
+ </class>
+ <query name="CityArea.findAll">
+  <![CDATA[select ca from net.deuce.clmanager.domain.CityArea ca order by ca.name]]>
+ </query>
+ <query name="CityArea.findUniqueByName">
+  <![CDATA[select ca from net.deuce.clmanager.domain.CityArea ca where ca.city = ? and ca.name = ? ]]>
+ </query>
+ <query name="CityArea.findUniqueByExternalName">
+  <![CDATA[select ca from net.deuce.clmanager.domain.CityArea ca where ca.city = ? and ca.externalName = ? ]]>
+ </query>
+ <query name="CityArea.findByCity">
+  <![CDATA[select ca from net.deuce.clmanager.domain.CityArea ca where ca.city = ?]]>
+ </query>
+ <query name="CityArea.findByCityName">
+  <![CDATA[select ca from net.deuce.clmanager.domain.CityArea ca, net.deuce.clmanager.domain.City c where ca.city = c and c.name = ?]]>
+ </query>
+</hibernate-mapping>

@@ -11,7 +11,10 @@
   <properties>
     <cl-entity-manager.version>1.0-SNAPSHOT</cl-entity-manager.version>
     <commons-dbcp.version>1.2.2</commons-dbcp.version>
+    <commons-fileupload.version>1.2.1</commons-fileupload.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
+    <commons-io.version>1.4</commons-io.version>
+    <commons-logging.version>1.1.1</commons-logging.version>
     <flickrapi.version>1.0</flickrapi.version>
     <generic-dao.version>1.0-SNAPSHOT</generic-dao.version>
     <gwt-user.version>1.4.62</gwt-user.version>
@@ -19,7 +22,7 @@
     <gwttk.version>0.2.3</gwttk.version>
     <gwtx.version>20070605</gwtx.version>
     <gwittir.version>0.3</gwittir.version>
-    <gxt.version>1.0-beta2</gxt.version>
+    <gxt.version>1.0-rc2</gxt.version>
     <hibernate.version>3.2.6.ga</hibernate.version>
     <hibernate3-plugin.version>2.1</hibernate3-plugin.version>
     <hotsax.version>0.1.2c</hotsax.version>
@@ -35,12 +38,14 @@
     <portlet-api.version>1.0</portlet-api.version>
     <postgresql.version>8.2-504.jdbc3</postgresql.version>
     <mysql.version>5.0.8</mysql.version>
-    <resource-pool.version>1.0.0-rc-8-SNAPSHOT</resource-pool.version>
+    <resource-pool.version>1.0.0-rc-8-PSFIX</resource-pool.version>
     <rome.version>0.9</rome.version>
     <rome-fetcher.version>0.9</rome-fetcher.version>
     <servlet-api.version>2.4</servlet-api.version>
     <scrapeforge.version>0.0.1</scrapeforge.version>
+    <springframework.version>2.5.3</springframework.version>
     <spring.version>2.5.3</spring.version>
+    <standard.version>1.1.2</standard.version>
     <stax-api.version>1.0-2</stax-api.version>
     <tagsoup.version>1.2</tagsoup.version>
     <xstream.version>1.2.2</xstream.version>

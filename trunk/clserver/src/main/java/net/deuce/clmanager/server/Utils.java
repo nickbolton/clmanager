@@ -1,14 +1,13 @@
 package net.deuce.clmanager.server;
 
 import java.io.InputStream;
-import java.io.StringWriter;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.ccil.cowan.tagsoup.Parser;
-import org.dom4j.Document;
 import org.dom4j.io.SAXContentHandler;
+import org.dom4j.io.SAXReader;
 import org.xml.sax.InputSource;
 
 public class Utils {
@@ -20,12 +19,40 @@ public class Utils {
         return o1.equals(o2);
     }
     
-    public static Document getResponse(String url) throws Exception {
+    public static HttpResponse getResponse(String url, int numRetries) throws Exception {
+        return getResponse(url, numRetries, false, true);
+    }
+    
+    public static HttpResponse getResponse(String url, int numRetries, boolean onlyIf200, boolean followRedirects) throws Exception {
+        if (numRetries < 0) {
+            numRetries = 0;
+        }
+        Exception exception = null;
+        int numTries = 0;
+        while (numTries++ <= numRetries) {
+            try {
+                return _getResponse(url, onlyIf200, followRedirects);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+        if (exception != null) {
+            throw exception;
+        }
+        throw new RuntimeException("Unknown exception");
+    }
+    
+    private static HttpResponse _getResponse(String url, boolean onlyIf200, boolean followRedirects) throws Exception {
         HttpClient client = new HttpClient();
         HttpMethod method = new GetMethod(url);
-        method.setFollowRedirects(true);
+        method.setFollowRedirects(followRedirects);
         client.executeMethod(method);
-        StringWriter sw = new StringWriter();
+        
+        int rc = method.getStatusCode();
+        
+        if (onlyIf200 && rc != 200) {
+            return new HttpResponse(rc);
+        }
         InputStream is = null;
         try {
             is = method.getResponseBodyAsStream();
@@ -34,10 +61,76 @@ public class Utils {
             SAXContentHandler saxch = new SAXContentHandler();
             p.setContentHandler(saxch);
             p.parse(new InputSource(is));
-            return saxch.getDocument();
+            return new HttpResponse(rc, saxch.getDocument());
+        } finally {
+            if (is != null) { is.close(); is = null; }
+        }
+    }
+    
+    public static HttpResponse getRssResponse(String url, int numRetries, boolean onlyIf200, boolean followRedirects) throws Exception {
+        if (numRetries < 0) {
+            numRetries = 0;
+        }
+        Exception exception = null;
+        int numTries = 0;
+        while (numTries++ <= numRetries) {
+            try {
+                return _getRssResponse(url, onlyIf200, followRedirects);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+        if (exception != null) {
+            throw exception;
+        }
+        throw new RuntimeException("Unknown exception");
+    }
+    
+    private static HttpResponse _getRssResponse(String url, boolean onlyIf200, boolean followRedirects) throws Exception {
+        HttpClient client = new HttpClient();
+        HttpMethod method = new GetMethod(url);
+        method.setFollowRedirects(followRedirects);
+        client.executeMethod(method);
+        
+        int rc = method.getStatusCode();
+        
+        if (onlyIf200 && rc != 200) {
+            return new HttpResponse(rc);
+        }
+        InputStream is = null;
+        try {
+            is = method.getResponseBodyAsStream();
+            SAXReader reader = new SAXReader();
+            return new HttpResponse(rc, reader.read(is));
         } finally {
             if (is != null) { is.close(); is = null; }
         }
     }
 
+    public static int getResponseCode(String url, int numRetries) throws Exception {
+        if (numRetries < 0) {
+            numRetries = 0;
+        }
+        Exception exception = null;
+        int numTries = 0;
+        while (numTries++ <= numRetries) {
+            try {
+                return _getResponseCode(url);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+        if (exception != null) {
+            throw exception;
+        }
+        throw new RuntimeException("Unknown exception");
+    }
+    
+    private static int _getResponseCode(String url) throws Exception {
+        HttpClient client = new HttpClient();
+        HttpMethod method = new GetMethod(url);
+        method.setFollowRedirects(true);
+        client.executeMethod(method);
+        return method.getStatusCode();
+    }
 }

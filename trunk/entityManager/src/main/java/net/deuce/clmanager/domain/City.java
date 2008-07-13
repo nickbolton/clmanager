@@ -1,4 +1,10 @@
 package net.deuce.clmanager.domain;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 // Generated Apr 11, 2008 1:02:39 PM by Hibernate Tools 3.2.0.CR1
 
 
@@ -8,15 +14,19 @@ package net.deuce.clmanager.domain;
  */
 public class City implements java.io.Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String name;
     private String url;
+    private Set<CityArea> areas = new HashSet<CityArea>(0);
+    private transient String properName;
     
     public City() {
     }
 
     public City(String name, String url) {
-       this.name = name;
+       setName(name);
        this.url = url;
     }
    
@@ -31,9 +41,31 @@ public class City implements java.io.Serializable {
         return this.name;
     }
     
+    public String getProperName() {
+        return properName;
+    }
+    
     public void setName(String name) {
         this.name = name;
+        properName = convertToProperCase(name);
     }
+    
+    public String convertToProperCase(String s) {
+        char[] chars    = s.trim().toLowerCase().toCharArray();
+        boolean found   = false;
+        
+        for (int i=0; i<chars.length; i++) {
+             if (!found && Character.isLetter(chars[i])) {
+                chars[i]    = Character.toUpperCase(chars[i]);
+                found       = true;
+             } else if (Character.isWhitespace(chars[i])) {
+                found       = false;
+             }
+        }
+        
+        return String.valueOf(chars);
+    }
+
     public String getUrl() {
         return this.url;
     }
@@ -54,6 +86,18 @@ public class City implements java.io.Serializable {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    public Set<CityArea> getAreas() {
+        return areas;
+    }
+
+    public void setAreas(Set<CityArea> areas) {
+        this.areas = areas;
+    }
+    
+    public int getAreaCount() {
+        return areas.size();
     }
     
 }

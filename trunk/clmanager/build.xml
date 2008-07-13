@@ -1,31 +1,12 @@
 <project name="clmanager" default="deploy">
-    <path id="toolslib">
-        <path location="/Users/deuce/.m2/repository/org/hibernate/hibernate-tools/3.2.0.ga/hibernate-tools-3.2.0.ga.jar" />
-        <path location="/Users/deuce/.m2/repository/org/hibernate/hibernate/3.2.6.ga/hibernate-3.2.6.ga.jar" />
-        <path location="/Users/deuce/.m2/repository/freemarker/freemarker/2.3.8/freemarker-2.3.8.jar" />
-        <path location="/Users/deuce/.m2/repository/postgresql/postgresql/8.2-504.jdbc3/postgresql-8.2-504.jdbc3.jar" />
-        <path location="/Users/deuce/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
-        <path location="/Users/deuce/.m2/repository/dom4j/dom4j/1.6.1/dom4j-1.6.1.jar"/>
-        <path location="/Users/deuce/.m2/repository/commons-collections/commons-collections/3.2/commons-collections-3.2.jar"/>
-        <pathelement location="src/main/resources"/>
-    </path>
-           
-    <taskdef name="hibernatetool" 
-        classname="org.hibernate.tool.ant.HibernateToolTask" 
-        classpathref="toolslib" />
-
-    <target name="generate-domain">
-        <hibernatetool destdir="generated">
-            <configuration configurationfile="src/main/resources/hibernate.cfg.xml"/>
-            <hbm2java/>
-            <hbm2dao/>
-        </hibernatetool>
-    </target>
-
+    <property file="build.properties"/>
     <target name="deploy">
-        <delete dir="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clmanager"/>
-        <unwar src="target/clmanager.war" dest="/Users/deuce/dev/src/personal/clmanager/tomcat/webapps/clmanager"/>
-        <!--property name="portletApp" value="${basedir}/target/clmanager.war"/>
-        <ant antfile="../up3/build.xml" dir="../up3" target="deployPortletApp"/-->
+        <delete dir="${deploy.home}/clmanager"/>
+        <mkdir dir="${deploy.home}/clmanager"/>
+        <unwar overwrite="true" dest="${deploy.home}/clmanager">
+            <fileset dir="target">
+                <include name="clmanager*war"/>
+            </fileset>
+        </unwar>
     </target>
 </project>

@@ -1,0 +1,134 @@
+a#logo-link {
+left:-190px;
+top:-170px;
+}
+div#body-header {
+height:167px;
+position:relative;
+}
+div.formbox div.title {
+margin:0pt;
+}
+div.formbox {
+margin:20px 0pt 0pt 20px;
+width:560px;
+}
+div#body-header, div#wrapper, div#main, div#body-container {
+width:600px;
+}
+div#body-header ul.tabs {
+top:132px;
+}
+form#loginForm {
+margin-top:50px;
+}
+input.text {
+font-size:16px;
+width:207px;
+}
+input#form-signup-zipcode.text {
+width:57px;
+}
+div.good .form-error {
+color:#000000;
+}
+form fieldset ol li label {
+display:block;
+float:left;
+font-size:13px;
+height:40px;
+margin:0pt 10px 0pt 0pt;
+text-align:right;
+width:85px;
+}
+form {
+margin-bottom:15px;
+width:340px;
+}
+form fieldset {
+border:medium none;
+}
+form fieldset ol li {
+border-top:1px dotted #DDDDDD;
+clear:left;
+padding:7px 0pt;
+}
+form input.submit {
+float:right;
+}
+form fieldset ol li ul li {
+border:medium none;
+}
+form fieldset ol li span.msg {
+color:#69BE28;
+display:block;
+font-weight:bold;
+margin:5px 0pt 0pt;
+}
+form fieldset ol li div.ajax {
+margin:5px 0pt 5px 18px;
+}
+form fieldset ol li.error {
+background:transparent url(../images/icons/form-ajax.png) no-repeat scroll right 7px;
+}
+form fieldset ol li.good {
+background:transparent url(../images/icons/form-ajax.png) no-repeat scroll right -93px;
+}
+div.tips {
+color:#8B8078;
+float:right;
+margin:0pt 0pt 20px;
+position:relative;
+text-align:right;
+top:20px;
+width:160px;
+}
+div.tips h3 {
+font-size:1.2em;
+}
+div.tips ul li {
+margin:14px 0pt;
+}
+div.tour {
+display:none;
+float:left;
+margin:0pt 50px 0pt 0pt;
+width:400px;
+}
+div.tour h3 {
+font-size:120%;
+margin:5px 0pt;
+text-align:center;
+}
+div.tour ul li {
+height:375px;
+}
+div.tour ul li li {
+border-bottom:1px solid #EEEEEE;
+height:auto;
+margin:4px;
+padding:4px;
+}
+div.tour a.first, div.tour a.pane {
+background:transparent url(../images/tour/dots.png) no-repeat scroll 0pt 0pt;
+display:inline;
+float:left;
+height:64px;
+text-indent:-9999px;
+width:40px;
+}
+div.tour a.first {
+background-image:url(../images/tour/play.png);
+margin-left:16px;
+width:62px;
+}
+div.tour a.first:hover {
+background-position:0pt -200px;
+}
+div.tour a.last {
+background-image:url(../images/tour/last-stop.png);
+width:106px;
+}
+div.tour a.selected {
+background-position:0pt -100px;
+}

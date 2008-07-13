@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!--
+  - Application context definition for "springapp" DispatcherServlet.
+  -->
+
+<beans>
+    <bean id="authController" class="net.deuce.cl.mvc.AuthenticationController" parent="abstractController">
+    </bean>
+
+    <bean id="createUserController" class="net.deuce.cl.mvc.CreateUserController" parent="abstractController">
+    </bean>
+
+    <bean id="emailController" class="net.deuce.cl.mvc.EmailSettingsController" parent="abstractController">
+    </bean>
+
+    <bean id="loginController" class="net.deuce.cl.mvc.LoginController" parent="abstractController">
+    </bean>
+
+    <bean id="logoutController" class="net.deuce.cl.mvc.LogoutController" parent="abstractController">
+    </bean>
+
+    <bean id="mainController" class="net.deuce.cl.mvc.MainController" parent="abstractController">
+    </bean>
+
+    <bean id="messageTemplatesController" class="net.deuce.cl.mvc.MessageTemplatesController" parent="abstractController">
+    </bean>
+
+    <bean id="viewController" class="net.deuce.cl.mvc.SetViewController" parent="abstractController">
+    </bean>
+
+    <bean id="viewedController" class="net.deuce.cl.mvc.SetViewedController" parent="abstractController">
+    </bean>
+
+    <bean id="flagController" class="net.deuce.cl.mvc.FlagController" parent="abstractController">
+    </bean>
+
+    <bean id="toggleFavoriteController" class="net.deuce.cl.mvc.ToggleFavoriteController" parent="abstractController">
+    </bean>
+
+    <bean id="favController" class="net.deuce.cl.mvc.FavoritesController" parent="abstractController">
+    </bean>
+
+    <bean id="selectCityController" class="net.deuce.cl.mvc.SelectCityController" parent="abstractController">
+    </bean>
+
+    <bean id="selectCategoryController" class="net.deuce.cl.mvc.SelectCategoryController" parent="abstractController">
+    </bean>
+
+    <bean id="signupController" class="net.deuce.cl.mvc.SignUpController" parent="abstractController">
+    </bean>
+
+    <bean id="sendMailController" class="net.deuce.cl.mvc.SendMailController" parent="abstractController">
+        <property name="fileService" ref="fileService"/>
+        <property name="maxMemorySize" value="1024"/>
+        <property name="maxRequestSize" value="2048000"/>
+    </bean>
+
+    <bean id="postsController" class="net.deuce.cl.mvc.PostsController" parent="abstractController">
+    </bean>
+
+    <bean id="getMessageTemplatesController" class="net.deuce.cl.mvc.GetMessageTemplatesController" parent="abstractController">
+    </bean>
+
+    <bean id="savedFilesController" class="net.deuce.cl.mvc.SavedFilesController" parent="abstractController">
+    </bean>
+
+    <bean id="subCityController" class="net.deuce.cl.mvc.SubscribeCityController" parent="abstractController">
+    </bean>
+
+    <bean id="unsubCityController" class="net.deuce.cl.mvc.UnsubscribeCityController" parent="abstractController">
+    </bean>
+
+    <bean id="subCatController" class="net.deuce.cl.mvc.SubscribeCategoryController" parent="abstractController">
+    </bean>
+
+    <bean id="unsubCatController" class="net.deuce.cl.mvc.UnsubscribeCategoryController" parent="abstractController">
+    </bean>
+
+    <bean id="citiesController" class="net.deuce.cl.mvc.CitiesController" parent="abstractController">
+    </bean>
+
+    <bean id="catsController" class="net.deuce.cl.mvc.CategoriesController" parent="abstractController">
+    </bean>
+
+    <bean id="setEmailSettingsController" class="net.deuce.cl.mvc.SetEmailSettingsController" parent="abstractController">
+    </bean>
+
+    <bean id="fileServiceController" class="net.deuce.cl.mvc.FileServiceController" parent="abstractController">
+        <property name="fileService" ref="fileService"/>
+    </bean>
+
+    <bean id="postCache" class="net.deuce.cl.mvc.PostCache"/>
+
+    <bean id="abstractController" class="net.deuce.cl.mvc.BaseController" abstract="true">
+        <property name="cityDao" ref="cityDao"/>
+        <property name="citySubscriptionDao" ref="citySubscriptionDao"/>
+        <property name="categoryDao" ref="categoryDao"/>
+        <property name="categorySubscriptionDao" ref="categorySubscriptionDao"/>
+        <property name="postDao" ref="postDao"/>
+        <property name="postActivitiesDao" ref="postActivitiesDao"/>
+        <property name="imageDao" ref="imageDao"/>
+        <property name="messageTemplateDao" ref="messageTemplateDao"/>
+        <property name="messagePhotoDao" ref="messagePhotoDao"/>
+        <property name="preferenceDao" ref="preferenceDao"/>
+        <property name="userPreferencesDao" ref="userPreferencesDao"/>
+        <property name="savedFileDao" ref="savedFileDao"/>
+        <property name="cache" ref="postCache"/>
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean id="fileService" class="net.deuce.cl.service.DefaultFileService">
+        <property name="baseFileDir" value="/Users/deuce/dev/src/personal/clmanager/files"/>
+    </bean>
+
+    <bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+        <property name="mappings">
+            <props>
+                <prop key="/signup">signupController</prop>
+                <prop key="/auth">authController</prop>
+                <prop key="/create">createUserController</prop>
+                <prop key="/login">loginController</prop>
+                <prop key="/logout">logoutController</prop>
+                <prop key="/main">mainController</prop>
+                <prop key="/selectCity">selectCityController</prop>
+                <prop key="/selectCat">selectCategoryController</prop>
+                <prop key="/fav">favController</prop>
+                <prop key="/tf">toggleFavoriteController</prop>
+                <prop key="/view">viewController</prop>
+                <prop key="/viewed">viewedController</prop>
+                <prop key="/flag">flagController</prop>
+                <prop key="/email">emailController</prop>
+                <prop key="/mt">messageTemplatesController</prop>
+                <prop key="/posts">postsController</prop>
+                <prop key="/sendmail">sendMailController</prop>
+                <prop key="/getmt">getMessageTemplatesController</prop>
+                <prop key="/sf">savedFilesController</prop>
+                <prop key="/file">fileServiceController</prop>
+                <prop key="/subcity">subCityController</prop>
+                <prop key="/unsubcity">unsubCityController</prop>
+                <prop key="/subcat">subCatController</prop>
+                <prop key="/unsubcat">unsubCatController</prop>
+                <prop key="/cities">citiesController</prop>
+                <prop key="/cats">catsController</prop>
+                <prop key="/setemail">setEmailSettingsController</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass"><value>org.springframework.web.servlet.view.JstlView</value></property>
+        <property name="prefix"><value>/WEB-INF/jsp/</value></property>
+        <property name="suffix"><value>.jsp</value></property>
+    </bean>
+</beans>

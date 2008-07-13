@@ -8,10 +8,10 @@
         <property name="url"><value>jdbc:mysql://localhost/clmanager</value></property>
         <property name="username"><value>deuce</value></property>
         <property name="password"><value>qopklm1</value></property>
-        <property name="maxActive"><value>50</value></property>
+        <property name="maxActive"><value>600</value></property>
         <property name="minIdle"><value>5</value></property>
         <property name="maxIdle"><value>5</value></property>
-        <property name="initialSize"><value>50</value></property>
+        <property name="initialSize"><value>100</value></property>
         <property name="testOnReturn"><value>true</value></property>
         <property name="validationQuery"><value>select 1</value></property>
         <property name="poolPreparedStatements"><value>true</value></property>
@@ -24,8 +24,8 @@
         <property name="user"><value>deuce</value></property>
         <property name="password"><value>qopklm1</value></property>
         <property name="simpleSql"><value>select 1</value></property>
-        <property name="size"><value>50</value></property>
-        <property name="logLevel"><value>5</value></property>
+        <property name="size"><value>100</value></property>
+        <property name="logLevel"><value>0</value></property>
         <property name="logMicroTimes"><value>false</value></property>
         <property name="traceCallers"><value>0</value></property>
     </bean-->
@@ -40,19 +40,14 @@
         <property name="categoryDao"><ref bean="CategoryDao"/></property>
         <property name="postDao"><ref bean="PostDao"/></property>
         <property name="imageDao"><ref bean="ImageDao"/></property>
+        <property name="cityAreaDao"><ref bean="CityAreaDao"/></property>
+        <property name="imagePath"><value>/Users/deuce/dev/src/personal/clmanager/data/images</value></property>
         <property name="sessionFactory"><ref bean="sessionFactory"/></property>
-        <property name="scraper"><ref bean="scraper"/></property>
-        <property name="numConcurrentThreads"><value>5</value></property>
-        <property name="threadPoolSize"><value>10</value></property>
+        <property name="spamDetector"><ref bean="spamDetector"/></property>
+        <property name="numConcurrentThreads"><value>25</value></property>
+        <property name="threadPoolSize"><value>50000</value></property>
         <property name="citiesUrl"><value>http://geo.craigslist.org/iso/us</value></property>
         <property name="cityUrlPattern"><value>^http:\/\/.*craigslist.org\/$</value></property>
-    </bean>
-
-    <bean id="scraper" class="net.deuce.clmanager.server.DefaultScraper">
-        <property name="imagePath"><value>images</value></property>
-        <property name="spamDetector"><ref bean="spamDetector"/></property>
-        <property name="postDao"><ref bean="PostDao"/></property>
-        <property name="sessionFactory"><ref bean="sessionFactory"/></property>
     </bean>
 
     <bean id="spamDetector" class="net.deuce.clmanager.server.DefaultSpamDetector">
@@ -75,15 +70,16 @@
         <property name="mappingResources">
             <list>
                 <value>City.hbm.xml</value>
+                <value>CityArea.hbm.xml</value>
                 <value>Category.hbm.xml</value>
                 <value>Image.hbm.xml</value>
-                <value>MessagePhoto.hbm.xml</value>
                 <value>MessageTemplate.hbm.xml</value>
                 <value>Post.hbm.xml</value>
                 <value>CitySubscription.hbm.xml</value>
                 <value>CategorySubscription.hbm.xml</value>
                 <value>PostActivities.hbm.xml</value>
                 <value>Preference.hbm.xml</value>
+                <value>SavedFile.hbm.xml</value>
                 <value>UserPreferences.hbm.xml</value>
             </list>
         </property>
@@ -164,6 +160,18 @@
             <bean parent="abstractDaoTarget">
                 <constructor-arg>
                     <value>net.deuce.clmanager.domain.Image</value>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+    <bean id="CityAreaDao" parent="abstractDao">
+        <property name="proxyInterfaces">
+            <value>net.deuce.clmanager.domain.dao.CityAreaDao</value>
+        </property>
+        <property name="target">
+            <bean parent="abstractDaoTarget">
+                <constructor-arg>
+                    <value>net.deuce.clmanager.domain.CityArea</value>
                 </constructor-arg>
             </bean>
         </property>

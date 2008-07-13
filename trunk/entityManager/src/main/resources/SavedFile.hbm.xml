@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+ <class name="net.deuce.clmanager.domain.SavedFile" table="SAVED_FILE">
+  <id type="long" column="SAVED_FILE_ID" name="id">
+   <generator class="native"/>
+  </id>
+  <property column="NAME" generated="never" lazy="false" name="name" type="string"/>
+  <property column="PATH" generated="never" lazy="false" name="path" type="string"/>
+  <property column="TYPE" generated="never" lazy="false" name="type" type="string"/>
+  <many-to-one name="userPreferences" column="USER_PREFERENCES_ID" class="net.deuce.clmanager.domain.UserPreferences"/>
+ </class>
+</hibernate-mapping>

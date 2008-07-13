@@ -16,7 +16,6 @@ public class Worker implements Runnable {
     public void run() {
         while (running) {
             try {
-                System.out.println("ZZZ working...");
                 synchronizer.synchronize();
                 Thread.sleep(refreshTime);
             } catch (InterruptedException e) {

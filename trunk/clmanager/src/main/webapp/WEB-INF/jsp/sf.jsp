@@ -1,0 +1,2 @@
+<%@ include file="/WEB-INF/jsp/include.jsp" %><c:forEach var="sf" items="${model.sf}"><li id="sf-${sf.id}" class="sf">
+<input title="Select to include as message attachment" align="center" id="sf-${sf.id}" name="sf-${sf.id}" type="checkbox" value="true" /><img title="" align="center" width="18" height="18" src="file?name=${sf.name}"/><a title="Select to include as message attachment" align="center" class="sf">${sf.name}</a></li></c:forEach>
